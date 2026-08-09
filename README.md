@@ -3,32 +3,62 @@
 ![CI](https://github.com/ymd38/pmo-agent/actions/workflows/ci.yml/badge.svg)
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
 
-プロジェクト統制基盤（PMO プラットフォーム）。プロジェクトコードの発行から工数・コスト管理、経営レポートまでを一気通貫で管理するモノレポです。
+> **プロジェクトコードの発行から、進捗・コスト・経営レポートまでを1つの基盤に。**
+> 部署やベンダーに散らばったプロジェクト情報を統制基盤に集約し、経営層が「いま、どのプロジェクトが危ないのか」を毎週自動で受け取れる状態をつくる PMO プラットフォームです。
+
+**ステータス: 検証（PoC）段階** — 動作するプロトタイプであり、実運用での導入実績はまだありません。機能・データモデル・画面はいずれも検証を通じて変更される前提です。以下の「提供価値」に記載した打ち手も、有効性を検証している最中のものを含みます。
 
 - 仕様の正本: [`docs/SPEC.md`](docs/SPEC.md)
 - デザインシステム: [`DESIGN.md`](DESIGN.md)
 - 開発ガイド: [`CLAUDE.md`](CLAUDE.md) / [`api/CLAUDE.md`](api/CLAUDE.md) / [`apps/pmo-dashboard/CLAUDE.md`](apps/pmo-dashboard/CLAUDE.md)
 
-## English Overview
+---
 
-**PMO Agent** is a project governance platform for PMO (Project Management Office) operations — issuing project codes, tracking work hours and true project costs (external spend + internal labor), and generating executive reports, all in one place.
+## 解決する課題
 
-**Stack**: Go 1.25 (Gin / dig / GORM, clean architecture), Nuxt 4 + Tailwind CSS v4, MySQL 8.0, golang-migrate, n8n, Docker Compose, GitHub Actions.
+社内のプロジェクトが増えるほど、経営側からは中身が見えなくなります。PMO Agent は次の4点を対象にしています。
 
-**Highlights**:
+- **予算・スケジュール・委託先の妥当性が評価できない** — 起案時の判断材料が個別の Excel に閉じている
+- **進行中プロジェクトの状況・課題・リスクが可視化されていない** — 担当者に聞かないと分からない
+- **内部工数コストが把握されておらず、プロジェクトの真のコストが不明** — 外部への支払いしか見えていない
+- **管理ツールが統一されていない** — ベンダー側のツールや Excel に情報が分散している
 
-- Role-based access control stored in the database (`roles` / `functions` / `role_functions`) — new roles require data changes, not code changes
-- JWT (HS256) auth in httpOnly cookies with refresh-token rotation; invitation/reset via single-use hashed tokens
-- Field-level response control by role (e.g. unit rates are visible to PMO admins only)
-- Immutable project codes issued per program (`INV-2026-0001-001`), enforced at the usecase layer
-- Automated daily / weekly / executive reporting via n8n workflows, with AI-generated PMO commentary (OpenAI via LangChain nodes)
+## 提供価値
 
-**Quick start** (Docker Desktop only — no host Go/Node/MySQL needed):
+| 課題 | PMO Agent の打ち手 | 状態 |
+|---|---|---|
+| プロジェクトの識別子が揺れ、横断集計できない | プログラム単位でコードを自動採番（`INV-2026-0001`）し、承認時に枝番（`-001`）を発行。**発行後の変更は API 層で拒否**するため集計キーが壊れない | 実装済 |
+| 予算・委託先の妥当性を判断できない | プログラム配下にプロジェクトを束ね、予算・期間・委託先・案件種別・開発手法を1画面で横並び比較 | 実装済 |
+| 進捗・リスクが可視化されていない | n8n が日次でタスク管理ツールから進捗を収集し、週次で全プロジェクト横断のエグゼクティブレポートを自動生成 | 実装済 |
+| 経営報告が属人的で毎回作り直しになる | 集計結果に AI が PMO 視点のコメントを付与し、そのまま経営会議に出せる形で出力 | 実装済 |
+| 誰にどこまで見せるかの制御が属人的 | 権限をコードではなく DB（`roles` / `functions` / `role_functions`）で管理。ロール追加はデータ投入のみでコード変更不要 | 実装済 |
+| 内部人件費を含めた真のコストが分からない | 工数入力 UI（worktrack）とグレード別単価マスタで内部人件費を積み上げ、外部支出と合算 | 開発中 |
+| 対話から PMO 業務そのものを動かしたい | PMO Agent MCP による Claude 連携 | 構想 |
 
-```bash
-make env && make up && make migrate-up && make seed-link
-# open the printed set-password link, then visit http://localhost:3000
-```
+> 「状態」は 2026-08 時点。**実装済** = 下記クイックスタートで動作確認できる範囲、**開発中** = 設計済みで未実装、**構想** = フェーズ2以降の検討対象です。
+> 「実装済」は動作することを指し、運用に耐えることを保証するものではありません（前述のとおり検証段階です）。
+
+## 画面イメージ
+
+いずれも検証環境のスクリーンショットで、表示されているプログラム名・金額・進捗はすべてデモ用のダミーデータです。
+
+### プログラム一覧
+
+プロジェクトの上位集計単位。コードは自動採番され、配下プロジェクトの予算と期間がロールアップされます。
+
+![プログラム一覧](docs/images/programs.png)
+
+### プログラム詳細 / 配下プロジェクト
+
+予算・期間のサマリーと、配下プロジェクトの委託先・予算・ステータス・属性（案件種別／開発手法）を並べて比較できます。
+
+![プログラム詳細と配下プロジェクト](docs/images/program-detail.png)
+
+### エグゼクティブレポート
+
+n8n の週次ワークフローが全プロジェクトを横断集計し、AI が経営視点のコメントを付与します。管理プロジェクト数・順調／高リスク件数・平均進捗率と、プロジェクト別の前週差を1画面で確認できます。
+
+![エグゼクティブレポート](docs/images/executive-report.png)
 
 ---
 
@@ -243,6 +273,7 @@ pmo-agent/
 ├── db/migrations/         # golang-migrate 連番マイグレーション
 ├── n8n/workflows/         # 進捗収集・レポート自動生成ワークフロー
 ├── docs/SPEC.md           # 仕様の正本
+├── docs/images/           # README 掲載のスクリーンショット
 ├── docker-compose.yml
 └── Makefile               # すべての開発タスク
 ```
