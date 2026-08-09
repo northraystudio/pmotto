@@ -51,21 +51,21 @@ func Load() (Config, error) {
 	// 黙って既定へフォールバックせずエラーにする（設定ミスの気付きを早める）。
 	// 負数は database/sql が「無制限・無期限」と解釈するため、プール制限を
 	// 目的とする本設定では設定ミスとして拒否する。
-	maxOpen, err := envInt("DB_MAX_OPEN_CONNS", 25)
+	maxOpen, err := getEnvInt("DB_MAX_OPEN_CONNS", 25)
 	if err != nil {
 		return Config{}, err
 	}
 	if maxOpen < 0 {
 		return Config{}, errors.New("環境変数 DB_MAX_OPEN_CONNS は 0 以上である必要があります")
 	}
-	maxIdle, err := envInt("DB_MAX_IDLE_CONNS", 25)
+	maxIdle, err := getEnvInt("DB_MAX_IDLE_CONNS", 25)
 	if err != nil {
 		return Config{}, err
 	}
 	if maxIdle < 0 {
 		return Config{}, errors.New("環境変数 DB_MAX_IDLE_CONNS は 0 以上である必要があります")
 	}
-	connMaxLifetime, err := envDurationStrict("DB_CONN_MAX_LIFETIME", 5*time.Minute)
+	connMaxLifetime, err := getEnvDurationStrict("DB_CONN_MAX_LIFETIME", 5*time.Minute)
 	if err != nil {
 		return Config{}, err
 	}
@@ -75,14 +75,14 @@ func Load() (Config, error) {
 
 	// レート制限は「制限」が目的のため、0・負数は無効化（=無制限）や不能状態を
 	// 意味してしまう。設定ミスとして起動時に拒否する（strict validation）。
-	rateLimitPerMin, err := envInt("AUTH_RATE_LIMIT_PER_MIN", 10)
+	rateLimitPerMin, err := getEnvInt("AUTH_RATE_LIMIT_PER_MIN", 10)
 	if err != nil {
 		return Config{}, err
 	}
 	if rateLimitPerMin <= 0 {
 		return Config{}, errors.New("環境変数 AUTH_RATE_LIMIT_PER_MIN は 1 以上である必要があります")
 	}
-	rateLimitBurst, err := envInt("AUTH_RATE_LIMIT_BURST", 5)
+	rateLimitBurst, err := getEnvInt("AUTH_RATE_LIMIT_BURST", 5)
 	if err != nil {
 		return Config{}, err
 	}
@@ -91,21 +91,21 @@ func Load() (Config, error) {
 	}
 
 	return Config{
-		DBHost:              env("DB_HOST", "localhost"),
-		DBPort:              env("DB_PORT", "3306"),
-		DBUser:              env("DB_USER", "root"),
-		DBPassword:          env("DB_PASSWORD", "root"),
-		DBName:              env("DB_NAME", "pmo"),
+		DBHost:              getEnv("DB_HOST", "localhost"),
+		DBPort:              getEnv("DB_PORT", "3306"),
+		DBUser:              getEnv("DB_USER", "root"),
+		DBPassword:          getEnv("DB_PASSWORD", "root"),
+		DBName:              getEnv("DB_NAME", "pmo"),
 		DBMaxOpenConns:      maxOpen,
 		DBMaxIdleConns:      maxIdle,
 		DBConnMaxLifetime:   connMaxLifetime,
 		JWTSecret:           secret,
-		AccessTokenTTL:      envDuration("ACCESS_TOKEN_TTL", 8*time.Hour),
-		RefreshTokenTTL:     envDuration("REFRESH_TOKEN_TTL", 7*24*time.Hour),
-		SetTokenTTL:         envDuration("SET_TOKEN_TTL", 72*time.Hour),
-		AppBaseURL:          env("APP_BASE_URL", "http://localhost:3000"),
-		Port:                env("PORT", "8080"),
-		CookieSecure:        envBool("COOKIE_SECURE", true),
+		AccessTokenTTL:      getEnvDuration("ACCESS_TOKEN_TTL", 8*time.Hour),
+		RefreshTokenTTL:     getEnvDuration("REFRESH_TOKEN_TTL", 7*24*time.Hour),
+		SetTokenTTL:         getEnvDuration("SET_TOKEN_TTL", 72*time.Hour),
+		AppBaseURL:          getEnv("APP_BASE_URL", "http://localhost:3000"),
+		Port:                getEnv("PORT", "8080"),
+		CookieSecure:        getEnvBool("COOKIE_SECURE", true),
 		AuthRateLimitPerMin: rateLimitPerMin,
 		AuthRateLimitBurst:  rateLimitBurst,
 	}, nil
@@ -119,14 +119,14 @@ func (c Config) DSN() string {
 	)
 }
 
-func env(key, fallback string) string {
+func getEnv(key, fallback string) string {
 	if v := os.Getenv(key); v != "" {
 		return v
 	}
 	return fallback
 }
 
-func envDuration(key string, fallback time.Duration) time.Duration {
+func getEnvDuration(key string, fallback time.Duration) time.Duration {
 	if v := os.Getenv(key); v != "" {
 		if d, err := time.ParseDuration(v); err == nil {
 			return d
@@ -135,8 +135,8 @@ func envDuration(key string, fallback time.Duration) time.Duration {
 	return fallback
 }
 
-// envDurationStrict は未設定なら fallback を返し、設定済みで不正な値ならエラーを返す。
-func envDurationStrict(key string, fallback time.Duration) (time.Duration, error) {
+// getEnvDurationStrict は未設定なら fallback を返し、設定済みで不正な値ならエラーを返す。
+func getEnvDurationStrict(key string, fallback time.Duration) (time.Duration, error) {
 	v := os.Getenv(key)
 	if v == "" {
 		return fallback, nil
@@ -148,8 +148,8 @@ func envDurationStrict(key string, fallback time.Duration) (time.Duration, error
 	return d, nil
 }
 
-// envInt は未設定なら fallback を返し、設定済みで不正な値ならエラーを返す。
-func envInt(key string, fallback int) (int, error) {
+// getEnvInt は未設定なら fallback を返し、設定済みで不正な値ならエラーを返す。
+func getEnvInt(key string, fallback int) (int, error) {
 	v := os.Getenv(key)
 	if v == "" {
 		return fallback, nil
@@ -161,7 +161,7 @@ func envInt(key string, fallback int) (int, error) {
 	return n, nil
 }
 
-func envBool(key string, fallback bool) bool {
+func getEnvBool(key string, fallback bool) bool {
 	if v := os.Getenv(key); v != "" {
 		if b, err := strconv.ParseBool(v); err == nil {
 			return b

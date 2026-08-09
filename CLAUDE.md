@@ -101,7 +101,7 @@ make storybook # Storybook起動（pmo-dashboard:6006 / worktrack:6007）
 |---|---|---|---|
 | api | 8080 | `API_PORT` | 8080 |
 | pmo-dashboard | 3000 | `PMO_DASHBOARD_PORT` | 3000 |
-| mysql | 3307 | `MYSQL_PORT` | 3306 |
+| mysql | 3306 | `MYSQL_PORT` | 3306 |
 
 `API_PORT` / `PMO_DASHBOARD_PORT` を変えると `NUXT_PUBLIC_API_BASE` と `APP_BASE_URL` の既定値も追随する（compose のネスト展開）。
 

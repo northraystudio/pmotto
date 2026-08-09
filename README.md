@@ -186,9 +186,9 @@ curl -b /tmp/c.txt http://localhost:8080/api/auth/me
 |---|---|---|---|
 | pmo-dashboard | http://localhost:3000 | `PMO_DASHBOARD_PORT` | `3000` |
 | api | http://localhost:8080 | `API_PORT` | `api:8080` |
-| mysql | `localhost:3307` | `MYSQL_PORT` | `mysql:3306` |
+| mysql | `localhost:3306` | `MYSQL_PORT` | `mysql:3306` |
 
-> ホストの MySQL ポートを `3307` にしているのは、既存の MySQL が `3306` を使っている場合の競合を避けるためです。
+> ホストで別の MySQL が `3306` を使っている場合は、`MYSQL_PORT=3307` のように変更してください。
 
 URL のような複合値は、設定した「部品」から `docker-compose.yml` が組み立てます。**ポートやホスト名を変えても、URL 側を手で直す必要はありません。**
 
@@ -208,7 +208,7 @@ worktrack（工数入力UI）と Storybook は未実装のため、現在 compos
 
 ## トラブルシュート
 
-- **`make up` でポート競合エラー** — 既定の 3000 / 8080 / 3307 が他プロセスで使われています。競合プロセスを停止するか、`PMO_DASHBOARD_PORT` / `API_PORT` / `MYSQL_PORT` を空いているポートに変更してください（例: `PMO_DASHBOARD_PORT=3002 make up`）。
+- **`make up` でポート競合エラー** — 既定の 3000 / 8080 / 3306 が他プロセスで使われています。競合プロセスを停止するか、`PMO_DASHBOARD_PORT` / `API_PORT` / `MYSQL_PORT` を空いているポートに変更してください（例: `PMO_DASHBOARD_PORT=3002 make up`）。
 - **ログイン直後の画面で一瞬エラーが出る** — API コンテナの起動直後はSSRの初回取得が間に合わないことがあります。リロードで解消します。
 - **マイグレーションが `dirty` で失敗する** — `make migrate-force version=<直前の成功番号>` で解除してから `make migrate-up`。
 - **データを完全に作り直したい** — `make reset`（全データ削除 → 再マイグレーション。その後 `make seed-link`）。
