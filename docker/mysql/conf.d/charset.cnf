@@ -1,0 +1,18 @@
+# MySQL 公式イメージ同梱の mysql クライアントは既定の文字セットが latin1 で、
+# サーバ側の utf8mb4 と食い違う。この状態で `make db-cli` から日本語を投入すると、
+# UTF-8 のバイト列が latin1 として解釈されたうえで utf8mb4 に変換され、
+# 文字化けしたまま保存される（同じクライアントで読み戻すと元に戻って見えるため
+# 気付きにくいが、utf8mb4 で接続する Go API からは文字化けして読める）。
+#
+# 呼び出しごとに --default-character-set=utf8mb4 を付けて回るのではなく、
+# コンテナ内クライアントの既定をサーバに合わせる。
+[client]
+default-character-set = utf8mb4
+
+[mysql]
+default-character-set = utf8mb4
+
+# サーバ側は既定で utf8mb4 だが、イメージ更新で変わらないよう明示しておく。
+[mysqld]
+character-set-server = utf8mb4
+collation-server     = utf8mb4_unicode_ci
