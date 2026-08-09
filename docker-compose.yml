@@ -12,6 +12,9 @@ services:
       - "${MYSQL_PORT:-3306}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+      # コンテナ内 mysql クライアントの既定文字セットを utf8mb4 に揃える。
+      # 詳細は charset.cnf のコメントを参照。
+      - ./docker/mysql/conf.d:/etc/mysql/conf.d:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 5s
