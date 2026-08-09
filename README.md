@@ -36,7 +36,9 @@ make env && make up && make migrate-up && make seed-link
 
 ```
 [ タスク管理ツール ] → [ Google Sheets ]
-                           ↓ n8n 日次収集・AI分析
+                           ↓
+                    [ n8n (:5678) ] 日次収集・AI分析
+                           ↓ mySql ノードで直接書き込み
 [ MySQL 8.0 ]  ←→  [ Go API (:8080) ]  ←→  [ pmo-dashboard (:3000) ]
 ```
 
@@ -66,11 +68,18 @@ make env && make up && make migrate-up && make seed-link
 | `daily_workflow.json` | 毎日10時 | 進行中プロジェクトの進捗データを Google Sheets から収集 → MySQL に保存 → 直近7日を分析して日次レポート生成 → AI（OpenAI）が PMO 視点のコメントを付与 |
 | `weekly_workflow.json` | 毎週月曜9時 | 日次レポートを集約して週次サマリーを生成 → 全プロジェクト横断のエグゼクティブレポートを作成 → AI が週次・経営向けコメントを生成 |
 
+n8n は `make up` で一緒に起動し、**http://localhost:5678** で開けます。
+
 利用手順:
 
-1. n8n インスタンス（Cloud / self-hosted）にワークフロー JSON をインポートする
-2. クレデンシャルを設定する: **MySQL**（本スタックのDB）/ **Google Sheets** / **OpenAI**
-3. インポートしたワークフローをオンにする
+1. http://localhost:5678 を開く（初回はオーナーアカウントの作成を求められます）
+2. ワークフロー JSON をインポートする。`n8n/workflows/` はコンテナ内の `/home/node/workflows` にマウントされているので、そのパスから読み込めます
+3. クレデンシャルを設定する: **MySQL** / **Google Sheets** / **OpenAI**
+4. インポートしたワークフローをオンにする
+
+> **MySQL クレデンシャルのホスト名**は `localhost` ではなく **`mysql`**（ポート `3306`）を指定してください。n8n は compose ネットワーク内から接続するため、ホスト公開ポート（`MYSQL_PORT`）ではなくコンテナ内ポートを使います。
+>
+> 認証情報とワークフローは `n8n_data` ボリュームに保存されるため、`make down` では消えません。`make reset` や `docker compose down -v` を実行すると**消えます**。
 
 ### Google Sheets フォーマット
 
@@ -163,7 +172,7 @@ curl -b /tmp/c.txt http://localhost:8080/api/auth/me
 
 | コマンド | 説明 |
 |---|---|
-| `make up` | 全サービス起動（mysql / api / pmo-dashboard） |
+| `make up` | 全サービス起動（mysql / api / pmo-dashboard / n8n） |
 | `make down` | 全サービス停止 |
 | `make restart` | 再起動 |
 | `make ps` | 起動中コンテナ確認 |
@@ -187,8 +196,11 @@ curl -b /tmp/c.txt http://localhost:8080/api/auth/me
 | pmo-dashboard | http://localhost:3000 | `PMO_DASHBOARD_PORT` | `3000` |
 | api | http://localhost:8080 | `API_PORT` | `api:${API_PORT}` |
 | mysql | `localhost:3306` | `MYSQL_PORT` | `mysql:3306` |
+| n8n | http://localhost:5678 | `N8N_PORT` | `n8n:${N8N_PORT}` |
 
-`API_PORT` はホスト公開ポートと API がコンテナ内で listen するポートの両方を指します（`config.go` も同じ変数を読みます）。ホスト側とコンテナ側で番号が食い違わないよう、1つの変数で揃えています。
+`API_PORT` はホスト公開ポートと API がコンテナ内で listen するポートの両方を指します（`config.go` も同じ変数を読みます）。ホスト側とコンテナ側で番号が食い違わないよう、1つの変数で揃えています。`N8N_PORT` も同じ扱いです。
+
+> `N8N_PORT` に **5679 は指定できません**。n8n 内部の Task Broker が 5679 を使うため、衝突して `n8n Task Broker's port 5679 is already in use` で起動に失敗します。
 
 > ホストで別の MySQL が `3306` を使っている場合は、`MYSQL_PORT=3307` のように変更してください。
 

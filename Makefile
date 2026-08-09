@@ -16,21 +16,21 @@ email ?= admin@example.com
 DB_URL_DOCKER = mysql://root:$(MYSQL_ROOT_PASSWORD)@tcp(mysql:3306)/$(MYSQL_DATABASE)
 
 .PHONY: help env up down restart build rebuild logs api-logs web-logs ps \
-        migrate-up migrate-down migrate-create migrate-force \
+        n8n-logs migrate-up migrate-down migrate-create migrate-force \
         seed-link db-cli reset test test-api test-web setup
 
 # ---- ヘルプ ----
 help: ## このヘルプを表示する
 	@echo "PMO Agent — make targets"
 	@echo ""
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(firstword $(MAKEFILE_LIST)) \
+	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(firstword $(MAKEFILE_LIST)) \
 		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
 
 env: ## .env が無ければ .env.example から作成する
 	@test -f .env && echo ".env は既に存在します" || (cp .env.example .env && echo ".env を作成しました")
 
 # ---- ライフサイクル ----
-up: ## 全サービスを起動（初回はビルド込み）: mysql / api / pmo-dashboard
+up: ## 全サービスを起動（初回はビルド込み）: mysql / api / pmo-dashboard / n8n
 	docker compose up -d
 
 down: ## 全サービスを停止
@@ -53,6 +53,9 @@ api-logs: ## API のログを追従表示
 
 web-logs: ## pmo-dashboard のログを追従表示
 	docker compose logs -f pmo-dashboard
+
+n8n-logs: ## n8n のログを追従表示
+	docker compose logs -f n8n
 
 ps: ## 起動中コンテナを確認
 	docker compose ps

@@ -71,6 +71,32 @@ services:
     depends_on:
       - api
 
+  # Backlog連携・レポート自動生成のワークフロー実行基盤。
+  # ワークフローは mySql ノードで DB に直接接続するため mysql の起動完了を待つ。
+  n8n:
+    # air と同じ理由でバージョンを固定する。:latest だと上流のリリースだけで
+    # 壊れる上、n8n はメジャー更新時に n8n_data 内のDBを不可逆に移行するため。
+    image: n8nio/n8n:2.17.6
+    ports:
+      # ホスト公開ポートとコンテナ内の listen ポートを N8N_PORT で揃える。
+      - "${N8N_PORT:-5678}:${N8N_PORT:-5678}"
+    environment:
+      # n8n が listen するポート。5679 は n8n 内部の Task Broker が使うため、
+      # ここに 5679 を指定すると衝突して起動に失敗する。
+      N8N_PORT: ${N8N_PORT:-5678}
+      # スケジュールトリガの発火時刻が UTC 基準になるのを防ぐため明示する。
+      TZ: ${TZ:-Asia/Tokyo}
+      GENERIC_TIMEZONE: ${TZ:-Asia/Tokyo}
+      N8N_DEFAULT_LOCALE: ${N8N_DEFAULT_LOCALE:-ja}
+    volumes:
+      # 認証情報・ワークフロー・暗号鍵の実体。消すと n8n 上の設定が全て失われる。
+      - n8n_data:/home/node/.n8n
+      # リポジトリ管理のワークフロー JSON をインポート元として見せる。
+      - ./n8n/workflows:/home/node/workflows
+    depends_on:
+      mysql:
+        condition: service_healthy
+
   # マイグレーション専用（golang-migrate）。`make migrate-up` 等から `docker compose run` で起動する。
   migrate:
     image: migrate/migrate
@@ -88,3 +114,4 @@ services:
 volumes:
   mysql_data:
   go_cache:
+  n8n_data:

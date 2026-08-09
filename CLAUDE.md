@@ -80,7 +80,7 @@ pmo-agent-prototype/
 ## Dev Environment
 
 ```bash
-make up        # 全サービス起動（mysql / api / pmo-dashboard / worktrack）
+make up        # 全サービス起動（mysql / api / pmo-dashboard / n8n）
 make down      # 全サービス停止
 make restart   # 再起動
 make logs      # ログ表示（全サービス）
@@ -111,7 +111,9 @@ worktrack（3001）と Storybook（6006 / 6007）は未実装のため compose �
 
 ```
 [ Backlog API ]
-    ↓ n8n 日次収集
+    ↓
+[ n8n (:5678) ] 日次収集（mySql ノードで DB に直接書き込む）
+    ↓
 [ MySQL 8.0 ]  ←→  [ Go API (:8080) ]  ←→  [ pmo-dashboard (:3000) ]
                                          ←→  [ worktrack (:3001) ]
                           ↑
