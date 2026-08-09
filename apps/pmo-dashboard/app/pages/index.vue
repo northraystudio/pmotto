@@ -100,7 +100,7 @@ const steps = [
             eyebrow="Insight"
             title="AIが進捗とリスクを要約"
           >
-            Backlog の進捗をAIが日次で分析し、リスクとトレンドを言語化する。
+            進捗をAIが日次で分析し、リスクとトレンドを言語化する。
           </GradientSpotlight>
 
           <GradientSpotlight
