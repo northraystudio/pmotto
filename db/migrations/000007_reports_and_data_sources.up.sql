@@ -21,10 +21,18 @@ INSERT INTO data_source_types (code, label, value_label, sort_order) VALUES
   ('backlog',     'Backlog',                'Backlog プロジェクトキー', 2);
 
 -- backlog_project_id は source_type='backlog' + source_value と意味が重複するため廃止する。
--- 運用データが存在しないためバックフィルは行わない。
+-- 既存値は取りこぼさないよう、列を落とす前に新しい2列へ移送する。
 ALTER TABLE projects
   ADD COLUMN source_type  VARCHAR(50)  AFTER status,   -- data_source_types.code。未設定なら収集対象外
-  ADD COLUMN source_value VARCHAR(255) AFTER source_type,
+  ADD COLUMN source_value VARCHAR(255) AFTER source_type;
+
+UPDATE projects
+   SET source_type  = 'backlog',
+       source_value = backlog_project_id
+ WHERE backlog_project_id IS NOT NULL
+   AND backlog_project_id <> '';
+
+ALTER TABLE projects
   DROP COLUMN backlog_project_id;
 
 ALTER TABLE projects

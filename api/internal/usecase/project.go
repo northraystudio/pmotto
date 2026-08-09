@@ -75,6 +75,7 @@ func (uc *ProjectUsecase) Create(ctx context.Context, programID int, in CreatePr
 	if strings.TrimSpace(in.Name) == "" {
 		return nil, fmt.Errorf("%w: プロジェクト名は必須です", domain.ErrValidation)
 	}
+	sourceType, sourceValue := normalizeSource(in.SourceType, in.SourceValue)
 	p := &domain.Project{
 		ProgramID:   programID,
 		Name:        strings.TrimSpace(in.Name),
@@ -86,8 +87,8 @@ func (uc *ProjectUsecase) Create(ctx context.Context, programID int, in CreatePr
 		StartDate:   in.StartDate,
 		EndDate:     in.EndDate,
 		Status:      domain.StatusPlanning,
-		SourceType:  emptyToNil(in.SourceType),
-		SourceValue: emptyToNil(in.SourceValue),
+		SourceType:  sourceType,
+		SourceValue: sourceValue,
 		CreatedBy:   in.CreatedBy,
 	}
 	if err := uc.projects.Create(ctx, p); err != nil {
@@ -119,8 +120,7 @@ func (uc *ProjectUsecase) Update(ctx context.Context, id int, in UpdateProjectIn
 	p.StartDate = in.StartDate
 	p.EndDate = in.EndDate
 	p.Status = in.Status
-	p.SourceType = emptyToNil(in.SourceType)
-	p.SourceValue = emptyToNil(in.SourceValue)
+	p.SourceType, p.SourceValue = normalizeSource(in.SourceType, in.SourceValue)
 	if err := uc.projects.Update(ctx, p); err != nil {
 		return nil, fmt.Errorf("usecase.Project.Update: %w", err)
 	}
@@ -163,10 +163,22 @@ func (uc *ProjectUsecase) IssueCode(ctx context.Context, id int) (*domain.Projec
 	return uc.projects.FindByID(ctx, id)
 }
 
+// normalizeSource は進捗の取得元指定（種別と識別子）を組で正規化する。
+// 種別が未指定なら識別子も捨てる。両者を独立に空文字判定すると
+// source_type=NULL / source_value あり という行ができてしまい、収集対象の抽出が
+// source_type で絞る以上、どのワークフローからも到達できない値だけが residue として残る。
+// 逆に種別だけの指定は許す（先に取得元を決めて識別子を後から入れる運用があるため）。
+func normalizeSource(sourceType, sourceValue string) (*string, *string) {
+	t := emptyToNil(sourceType)
+	if t == nil {
+		return nil, nil
+	}
+	return t, emptyToNil(sourceValue)
+}
+
 // emptyToNil は空文字（前後空白のみを含む）を nil に正規化する。
 // source_type は data_source_types.code への FK を持つため、未選択を空文字のまま
-// 保存すると外部キー制約に違反する。source_value も、種別未選択なのに値だけ残る
-// 中途半端な状態を避けるため同じ扱いにする。
+// 保存すると外部キー制約に違反する。
 func emptyToNil(s string) *string {
 	trimmed := strings.TrimSpace(s)
 	if trimmed == "" {
