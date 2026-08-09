@@ -26,14 +26,17 @@ services:
       - ./api:/app
       - go_cache:/root/go/pkg/mod
     environment:
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_USER: root
-      DB_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      DB_NAME: ${MYSQL_DATABASE}
+      # DB 接続先は compose ネットワーク内の mysql サービス。ポートはコンテナ内の 3306
+      # （ホスト公開用の MYSQL_PORT とは別物）。いずれも個別に上書きできる。
+      DB_HOST: ${DB_HOST:-mysql}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_USER: ${DB_USER:-root}
+      # 既定は mysql サービスの認証情報を流用する。別ユーザーを使う場合のみ上書きする。
+      DB_PASSWORD: ${DB_PASSWORD:-${MYSQL_ROOT_PASSWORD}}
+      DB_NAME: ${DB_NAME:-${MYSQL_DATABASE}}
       JWT_SECRET: ${JWT_SECRET}
-      # パスワード設定リンクの生成元。既定はフロントの公開ポートに追随させる。
-      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:${PMO_DASHBOARD_PORT:-3000}}
+      # パスワード設定リンクの生成元。既定はフロントの公開ホスト/ポートから組み立てる。
+      APP_BASE_URL: ${APP_BASE_URL:-http://${APP_HOST:-localhost}:${PMO_DASHBOARD_PORT:-3000}}
       # ローカルはHTTPのためSecure Cookieを無効化する。本番（HTTPS）では設定しない（既定true）
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
     depends_on:
@@ -51,8 +54,8 @@ services:
       - ./apps/pmo-dashboard:/app
       - /app/node_modules
     environment:
-      # ブラウザ（クライアント）はホスト経由で API を叩くため、API のホスト公開ポートに追随させる。
-      NUXT_PUBLIC_API_BASE: ${NUXT_PUBLIC_API_BASE:-http://localhost:${API_PORT:-8080}}
+      # ブラウザ（クライアント）はホスト経由で API を叩くため、公開ホスト/ポートから組み立てる。
+      NUXT_PUBLIC_API_BASE: ${NUXT_PUBLIC_API_BASE:-http://${APP_HOST:-localhost}:${API_PORT:-8080}}
       # SSR（コンテナ内）は compose ネットワーク経由。コンテナ内ポートは固定 8080 なので env 化しない。
       NUXT_API_BASE_SERVER: ${NUXT_API_BASE_SERVER:-http://api:8080}
       HOST: 0.0.0.0

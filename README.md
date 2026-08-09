@@ -189,8 +189,18 @@ curl -b /tmp/c.txt http://localhost:8080/api/auth/me
 | mysql | `localhost:3307` | `MYSQL_PORT` | `mysql:3306` |
 
 > ホストの MySQL ポートを `3307` にしているのは、既存の MySQL が `3306` を使っている場合の競合を避けるためです。
->
-> `API_PORT` / `PMO_DASHBOARD_PORT` を変えると、`NUXT_PUBLIC_API_BASE`（ブラウザ→API）と `APP_BASE_URL`（パスワード設定リンク）の既定値も自動で追随します。これらを明示的に設定している場合のみ、手動で合わせてください。SSR 用の `NUXT_API_BASE_SERVER` は compose ネットワーク内の通信でコンテナ内ポート固定のため、変更不要です。
+
+URL のような複合値は、設定した「部品」から `docker-compose.yml` が組み立てます。**ポートやホスト名を変えても、URL 側を手で直す必要はありません。**
+
+| 組み立てられる値 | 既定の組み立て | 用途 |
+|---|---|---|
+| `NUXT_PUBLIC_API_BASE` | `http://${APP_HOST}:${API_PORT}` | ブラウザ → API |
+| `APP_BASE_URL` | `http://${APP_HOST}:${PMO_DASHBOARD_PORT}` | パスワード設定リンクの生成元 |
+| `DB_PASSWORD` / `DB_NAME` | `MYSQL_ROOT_PASSWORD` / `MYSQL_DATABASE` を流用 | API → MySQL |
+
+`APP_HOST`（既定 `localhost`）は、ブラウザからアクセスするホスト名です。LAN 内の別マシンから開くときに IP へ変えると、API の URL も同時に追随します。
+
+リバースプロキシ配下など、ホスト名とポートの組み合わせで表せない場合のみ、`APP_BASE_URL` などを直接指定して組み立てを上書きしてください（`.env.example` の「上書き用」セクション）。SSR 用の `NUXT_API_BASE_SERVER` は compose ネットワーク内の通信でコンテナ内ポート固定のため、変更不要です。
 
 worktrack（工数入力UI）と Storybook は未実装のため、現在 compose では無効化しています。
 
