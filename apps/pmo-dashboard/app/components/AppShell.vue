@@ -6,6 +6,7 @@ const nav = computed(() =>
   [
     { to: '/home', label: 'ホーム', show: true },
     { to: '/programs', label: 'プログラム', show: auth.hasFunction('view_project_detail') },
+    { to: '/reports/executive', label: 'エグゼクティブレポート', show: auth.hasFunction('view_executive_report') },
     { to: '/admin/users', label: 'メンバー管理', show: auth.hasFunction('manage_users') },
     { to: '/admin/categories', label: '属性マスタ', show: auth.hasFunction('manage_categories') },
   ].filter((n) => n.show),

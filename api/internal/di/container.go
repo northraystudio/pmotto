@@ -39,6 +39,8 @@ func buildContainer(opts ...dig.Option) (*dig.Container, error) {
 	provide(repository.NewUserRepo, dig.As(new(usecase.UserRepository), new(middleware.FunctionResolver), new(middleware.ActiveResolver)))
 	provide(repository.NewRoleRepo, dig.As(new(usecase.RoleRepository)))
 	provide(repository.NewCategoryRepo, dig.As(new(usecase.CategoryRepository)))
+	provide(repository.NewReportRepo, dig.As(new(usecase.ReportRepository)))
+	provide(repository.NewDataSourceTypeRepo, dig.As(new(usecase.DataSourceTypeRepository)))
 	provide(repository.NewPasswordSetTokenRepo, dig.As(new(usecase.PasswordSetTokenRepository)))
 	provide(repository.NewRefreshTokenRepo, dig.As(new(usecase.RefreshTokenRepository)))
 	provide(repository.NewProgramRepo, dig.As(new(usecase.ProgramRepository)))
@@ -50,6 +52,7 @@ func buildContainer(opts ...dig.Option) (*dig.Container, error) {
 	provide(provideAuthUsecase)
 	provide(provideUserUsecase)
 	provide(usecase.NewCategoryUsecase)
+	provide(usecase.NewReportUsecase)
 	provide(usecase.NewProgramUsecase)
 	provide(usecase.NewProjectUsecase)
 	provide(usecase.NewMemberUsecase)
@@ -60,6 +63,7 @@ func buildContainer(opts ...dig.Option) (*dig.Container, error) {
 	provide(provideAuthHandler)
 	provide(handler.NewUserHandler)
 	provide(handler.NewCategoryHandler)
+	provide(handler.NewReportHandler)
 	provide(handler.NewMetaHandler)
 	provide(handler.NewProgramHandler)
 	provide(handler.NewProjectHandler)
@@ -122,12 +126,14 @@ func provideDeps(
 	project *handler.ProjectHandler,
 	member *handler.MemberHandler,
 	attribute *handler.AttributeHandler,
+	report *handler.ReportHandler,
 	mw *middleware.Middleware,
 	rateLimit *middleware.RateLimiter,
 ) handler.Deps {
 	return handler.Deps{
 		Auth: auth, User: user, Category: cat, Meta: meta,
-		Program: program, Project: project, Member: member, Attribute: attribute, MW: mw,
+		Program: program, Project: project, Member: member, Attribute: attribute,
+		Report: report, MW: mw,
 		RateLimit:     rateLimit,
 		AllowedOrigin: cfg.AppBaseURL,
 	}

@@ -15,24 +15,28 @@ const (
 // Project は実作業単位。必ずプログラムに属する（ProgramID NOT NULL）。
 // ProjectCode は承認時（active遷移）に枝番を採番して発行し、以後不変。発行前は nil。
 type Project struct {
-	ID               int           `json:"id"                gorm:"primaryKey"`
-	ProgramID        int           `json:"program_id"`
-	BranchNo         *int          `json:"branch_no"`
-	ProjectCode      *string       `json:"project_code"`
-	Name             string        `json:"name"`
-	Description      string        `json:"description"`
-	PMID             *int          `json:"pm_id"             gorm:"column:pm_id"`
-	ApproverID       *int          `json:"approver_id"`
-	Vendor           string        `json:"vendor"`
-	Budget           *int64        `json:"budget"`
-	StartDate        *time.Time    `json:"start_date"        gorm:"type:date"`
-	EndDate          *time.Time    `json:"end_date"          gorm:"type:date"`
-	Status           ProjectStatus `json:"status"`
-	BacklogProjectID string        `json:"backlog_project_id"`
-	AIReviewDocPath  string        `json:"ai_review_doc_path" gorm:"column:ai_review_doc_path"`
-	CreatedBy        int           `json:"created_by"`
-	CreatedAt        time.Time     `json:"created_at"`
-	UpdatedAt        time.Time     `json:"updated_at"`
+	ID          int           `json:"id"                gorm:"primaryKey"`
+	ProgramID   int           `json:"program_id"`
+	BranchNo    *int          `json:"branch_no"`
+	ProjectCode *string       `json:"project_code"`
+	Name        string        `json:"name"`
+	Description string        `json:"description"`
+	PMID        *int          `json:"pm_id"             gorm:"column:pm_id"`
+	ApproverID  *int          `json:"approver_id"`
+	Vendor      string        `json:"vendor"`
+	Budget      *int64        `json:"budget"`
+	StartDate   *time.Time    `json:"start_date"        gorm:"type:date"`
+	EndDate     *time.Time    `json:"end_date"          gorm:"type:date"`
+	Status      ProjectStatus `json:"status"`
+	// SourceType は進捗の取得元種別（data_source_types.code への FK）。SourceValue は
+	// 種別ごとの識別子（スプレッドシートID / Backlog プロジェクトキー等）。
+	// FK があるため、未設定は空文字ではなく NULL で保持する必要がある。
+	SourceType      *string   `json:"source_type"`
+	SourceValue     *string   `json:"source_value"`
+	AIReviewDocPath string    `json:"ai_review_doc_path" gorm:"column:ai_review_doc_path"`
+	CreatedBy       int       `json:"created_by"`
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
 }
 
 func (Project) TableName() string { return "projects" }

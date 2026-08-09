@@ -78,7 +78,10 @@ export interface Project {
   start_date: string | null
   end_date: string | null
   status: ProjectStatus
-  backlog_project_id: string
+  // 進捗の取得元。source_type は data_source_types.code、
+  // source_value は種別ごとの識別子（スプレッドシートID等）。未設定は null。
+  source_type: string | null
+  source_value: string | null
   created_at: string
   updated_at: string
 }
@@ -106,4 +109,47 @@ export interface ProgramDetail {
   program: Program
   aggregate: ProgramAggregate
   projects: Project[]
+}
+
+// DataSourceType は GET /data-source-types の要素（進捗の取得元種別マスタ）。
+// value_label は source_value 入力欄のラベルで、種別によって求める値が変わる。
+export interface DataSourceType {
+  id: number
+  code: string
+  label: string
+  value_label: string
+  sort_order: number
+  is_active: boolean
+}
+
+// ExecutiveReport は GET /reports/executive の要素。
+// content / ai_comment は n8n の週次ワークフローが生成する。
+// ai_comment は AI 生成ステップ前だと null になりうる。
+export interface ExecutiveReport {
+  id: number
+  report_date: string
+  report_type: string
+  content: ExecutiveReportContent
+  ai_comment: string | null
+  created_at: string
+}
+
+export interface ExecutiveReportContent {
+  report_week: string
+  total_projects: number
+  on_track_count: number
+  high_risk_count: number
+  average_progress: number
+  projects: ExecutiveProjectSummary[]
+  high_risk_projects: string[]
+  executive_summary: string
+}
+
+export interface ExecutiveProjectSummary {
+  project_id: number
+  project_name: string
+  avg_progress: number
+  progress_trend: number
+  high_risk_count: number
+  risk_counts: Record<string, number>
 }

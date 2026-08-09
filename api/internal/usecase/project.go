@@ -20,29 +20,31 @@ func NewProjectUsecase(projects ProjectRepository, programs ProgramRepository) *
 }
 
 type CreateProjectInput struct {
-	Name             string
-	Description      string
-	PMID             *int
-	ApproverID       *int
-	Vendor           string
-	Budget           *int64
-	StartDate        *time.Time
-	EndDate          *time.Time
-	BacklogProjectID string
-	CreatedBy        int
+	Name        string
+	Description string
+	PMID        *int
+	ApproverID  *int
+	Vendor      string
+	Budget      *int64
+	StartDate   *time.Time
+	EndDate     *time.Time
+	SourceType  string
+	SourceValue string
+	CreatedBy   int
 }
 
 type UpdateProjectInput struct {
-	Name             string
-	Description      string
-	PMID             *int
-	ApproverID       *int
-	Vendor           string
-	Budget           *int64
-	StartDate        *time.Time
-	EndDate          *time.Time
-	Status           domain.ProjectStatus
-	BacklogProjectID string
+	Name        string
+	Description string
+	PMID        *int
+	ApproverID  *int
+	Vendor      string
+	Budget      *int64
+	StartDate   *time.Time
+	EndDate     *time.Time
+	Status      domain.ProjectStatus
+	SourceType  string
+	SourceValue string
 }
 
 // Get はスコープ内のプロジェクトのみ返す。担当外は存在秘匿のため ErrNotFound を返す
@@ -74,18 +76,19 @@ func (uc *ProjectUsecase) Create(ctx context.Context, programID int, in CreatePr
 		return nil, fmt.Errorf("%w: プロジェクト名は必須です", domain.ErrValidation)
 	}
 	p := &domain.Project{
-		ProgramID:        programID,
-		Name:             strings.TrimSpace(in.Name),
-		Description:      in.Description,
-		PMID:             in.PMID,
-		ApproverID:       in.ApproverID,
-		Vendor:           in.Vendor,
-		Budget:           in.Budget,
-		StartDate:        in.StartDate,
-		EndDate:          in.EndDate,
-		Status:           domain.StatusPlanning,
-		BacklogProjectID: in.BacklogProjectID,
-		CreatedBy:        in.CreatedBy,
+		ProgramID:   programID,
+		Name:        strings.TrimSpace(in.Name),
+		Description: in.Description,
+		PMID:        in.PMID,
+		ApproverID:  in.ApproverID,
+		Vendor:      in.Vendor,
+		Budget:      in.Budget,
+		StartDate:   in.StartDate,
+		EndDate:     in.EndDate,
+		Status:      domain.StatusPlanning,
+		SourceType:  emptyToNil(in.SourceType),
+		SourceValue: emptyToNil(in.SourceValue),
+		CreatedBy:   in.CreatedBy,
 	}
 	if err := uc.projects.Create(ctx, p); err != nil {
 		return nil, fmt.Errorf("usecase.Project.Create: %w", err)
@@ -116,7 +119,8 @@ func (uc *ProjectUsecase) Update(ctx context.Context, id int, in UpdateProjectIn
 	p.StartDate = in.StartDate
 	p.EndDate = in.EndDate
 	p.Status = in.Status
-	p.BacklogProjectID = in.BacklogProjectID
+	p.SourceType = emptyToNil(in.SourceType)
+	p.SourceValue = emptyToNil(in.SourceValue)
 	if err := uc.projects.Update(ctx, p); err != nil {
 		return nil, fmt.Errorf("usecase.Project.Update: %w", err)
 	}
@@ -157,4 +161,16 @@ func (uc *ProjectUsecase) IssueCode(ctx context.Context, id int) (*domain.Projec
 		return nil, fmt.Errorf("usecase.Project.IssueCode persist: %w", err)
 	}
 	return uc.projects.FindByID(ctx, id)
+}
+
+// emptyToNil は空文字（前後空白のみを含む）を nil に正規化する。
+// source_type は data_source_types.code への FK を持つため、未選択を空文字のまま
+// 保存すると外部キー制約に違反する。source_value も、種別未選択なのに値だけ残る
+// 中途半端な状態を避けるため同じ扱いにする。
+func emptyToNil(s string) *string {
+	trimmed := strings.TrimSpace(s)
+	if trimmed == "" {
+		return nil
+	}
+	return &trimmed
 }

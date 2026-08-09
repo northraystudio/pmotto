@@ -24,7 +24,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT * FROM projects WHERE (end_date >= CURDATE() OR end_date IS NULL) AND spreadsheet_id IS NOT NULL",
+        "query": "SELECT * FROM projects WHERE (end_date >= CURDATE() OR end_date IS NULL) AND source_type = 'spreadsheet' AND source_value IS NOT NULL AND source_value <> ''",
         "options": {}
       },
       "id": "8a38d102-4619-413e-b918-c2b0ac2e9e2b",

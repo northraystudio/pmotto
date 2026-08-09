@@ -128,3 +128,14 @@ type TokenManager interface {
 	Generate() (string, error)
 	Hash(plain string) string
 }
+
+// ReportRepository は n8n が生成したレポートを読み出す。
+// 生成・更新は n8n の責務のため、書き込みメソッドは意図的に持たない。
+type ReportRepository interface {
+	ListExecutive(ctx context.Context, limit int) ([]domain.ExecutiveReport, error)
+}
+
+// DataSourceTypeRepository は進捗の取得元種別マスタを読み出す。
+type DataSourceTypeRepository interface {
+	ListActive(ctx context.Context) ([]domain.DataSourceType, error)
+}

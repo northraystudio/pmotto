@@ -77,18 +77,19 @@ func (r *ProjectRepo) IDsByCreator(ctx context.Context, userID int) ([]int, erro
 func (r *ProjectRepo) Update(ctx context.Context, p *domain.Project) error {
 	return r.db.WithContext(ctx).Model(&domain.Project{}).
 		Where("id = ?", p.ID).
-		Select("name", "description", "pm_id", "approver_id", "vendor", "budget", "start_date", "end_date", "status", "backlog_project_id").
+		Select("name", "description", "pm_id", "approver_id", "vendor", "budget", "start_date", "end_date", "status", "source_type", "source_value").
 		Updates(map[string]any{
-			"name":               p.Name,
-			"description":        p.Description,
-			"pm_id":              p.PMID,
-			"approver_id":        p.ApproverID,
-			"vendor":             p.Vendor,
-			"budget":             p.Budget,
-			"start_date":         p.StartDate,
-			"end_date":           p.EndDate,
-			"status":             p.Status,
-			"backlog_project_id": p.BacklogProjectID,
+			"name":         p.Name,
+			"description":  p.Description,
+			"pm_id":        p.PMID,
+			"approver_id":  p.ApproverID,
+			"vendor":       p.Vendor,
+			"budget":       p.Budget,
+			"start_date":   p.StartDate,
+			"end_date":     p.EndDate,
+			"status":       p.Status,
+			"source_type":  p.SourceType,
+			"source_value": p.SourceValue,
 		}).Error
 }
 

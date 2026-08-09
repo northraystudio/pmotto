@@ -18,6 +18,7 @@ type Deps struct {
 	Project       *ProjectHandler
 	Member        *MemberHandler
 	Attribute     *AttributeHandler
+	Report        *ReportHandler
 	MW            *middleware.Middleware
 	RateLimit     *middleware.RateLimiter
 	AllowedOrigin string
@@ -88,6 +89,12 @@ func NewEngine(d Deps) *gin.Engine {
 		auth.GET("/projects/:id/attributes", d.MW.RequireFunction("view_project_detail"), d.Attribute.List)
 		auth.POST("/projects/:id/attributes", d.MW.RequireFunction("manage_projects"), d.Attribute.Assign)
 		auth.DELETE("/projects/:id/attributes/:valueId", d.MW.RequireFunction("manage_projects"), d.Attribute.Delete)
+
+		// レポート（n8n が生成したものを読むだけ。生成経路は API に持たない）
+		auth.GET("/reports/executive", d.MW.RequireFunction("view_executive_report"), d.Report.Executive)
+
+		// 進捗の取得元種別マスタ（プロジェクト編集の選択肢。参照は認証のみ）
+		auth.GET("/data-source-types", d.Meta.DataSourceTypes)
 
 		// 属性カテゴリ（参照は認証のみ、変更は manage_categories）
 		auth.GET("/categories", d.Category.List)

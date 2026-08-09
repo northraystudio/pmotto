@@ -121,7 +121,8 @@ RequireFunction("view_project_cost")
 | `project_members` | プロジェクトへのメンバーアサイン |
 | `grade_rates` | グレード別・年度別時間単価 |
 | `work_hours` | 工数実績 |
-| `project_progress` | Backlogから収集したタスク進捗 |
+| `data_source_types` | 進捗の取得元種別マスタ（`spreadsheet` / `backlog`）。`projects.source_type` の FK 先 |
+| `project_progress` | 取得元から収集したタスク進捗 |
 | `daily_reports` / `weekly_reports` / `executive_reports` | レポート（JSONカラム） |
 
 ## API Endpoints Summary
