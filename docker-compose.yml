@@ -34,12 +34,18 @@ services:
       API_PORT: ${API_PORT:-8080}
       # DB 接続先は compose ネットワーク内の mysql サービス。ポートはコンテナ内の 3306
       # （ホスト公開用の MYSQL_PORT とは別物）。いずれも個別に上書きできる。
-      DB_HOST: ${DB_HOST:-mysql}
-      DB_PORT: ${DB_PORT:-3306}
-      DB_USER: ${DB_USER:-root}
+      #
+      # 上書き用の変数名を PMO_ で始めるのは、DB_HOST / DB_PORT のような一般的な名前だと
+      # 他プロジェクト向けにシェルへ export された値を意図せず拾ってしまうため。
+      # 実際に DB_PORT=5433（PostgreSQL 用）が漏れ込み、MySQL に対してそのポートで
+      # 接続しに行って connection refused になった。コンテナへ渡す名前は
+      # config.go が読む DB_* のままにする。
+      DB_HOST: ${PMO_DB_HOST:-mysql}
+      DB_PORT: ${PMO_DB_PORT:-3306}
+      DB_USER: ${PMO_DB_USER:-root}
       # 既定は mysql サービスの認証情報を流用する。別ユーザーを使う場合のみ上書きする。
-      DB_PASSWORD: ${DB_PASSWORD:-${MYSQL_ROOT_PASSWORD}}
-      DB_NAME: ${DB_NAME:-${MYSQL_DATABASE}}
+      DB_PASSWORD: ${PMO_DB_PASSWORD:-${MYSQL_ROOT_PASSWORD}}
+      DB_NAME: ${PMO_DB_NAME:-${MYSQL_DATABASE}}
       # 必須。空の署名鍵での起動を防ぐ（config.Load も未設定ならエラーにするが、
       # コンテナを起動する前に落とした方が原因が分かりやすい）。
       JWT_SECRET: ${JWT_SECRET:?.env.example を参照して設定してください。openssl rand -base64 48 で生成できます}

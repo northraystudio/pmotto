@@ -222,6 +222,7 @@ worktrack（工数入力UI）と Storybook は未実装のため、現在 compos
 
 ## トラブルシュート
 
+- **API が想定と違う DB に繋ぎにいく（`connection refused` / `Access denied`）** — 起動ログの `DB_HOST=... DB_PORT=...` 行と `infra: DB接続先 ...` 行を見比べてください。前者は設定値、後者は MySQL 自身の応答です。DB 接続まわりの上書きは `PMO_DB_HOST` / `PMO_DB_PORT` / `PMO_DB_USER` / `PMO_DB_PASSWORD` / `PMO_DB_NAME` という **`PMO_` 付きの名前**で行います。`DB_PORT` のような一般的な名前を使わないのは、他プロジェクト用にシェルへ export された値を拾ってしまう事故を防ぐためです（実例: `DB_PORT=5433` が漏れ込み、MySQL に PostgreSQL のポートで接続しにいった）。
 - **`required variable ... is missing a value` で止まる** — `MYSQL_ROOT_PASSWORD` / `MYSQL_DATABASE` / `JWT_SECRET` は必須です。空のまま起動すると空パスワードの MySQL や空の署名鍵で立ち上がってしまうため、コンテナを作る前に compose が止めます。エラーは1件ずつ出るので、表示された変数を設定して再実行してください。なお **この検証は `make down` / `make ps` / `make logs` でも走ります** — 変数を export していないターミナルからは停止操作もできない点に注意してください（起動したターミナルから実行するか、同じ変数を export してください）。
 - **`make up` でポート競合エラー** — 既定の 3000 / 8080 / 3306 が他プロセスで使われています。競合プロセスを停止するか、`PMO_DASHBOARD_PORT` / `API_PORT` / `MYSQL_PORT` を空いているポートに変更してください（例: `PMO_DASHBOARD_PORT=3002 make up`）。
 - **ログイン直後の画面で一瞬エラーが出る** — API コンテナの起動直後はSSRの初回取得が間に合わないことがあります。リロードで解消します。
