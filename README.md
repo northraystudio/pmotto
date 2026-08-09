@@ -208,6 +208,7 @@ worktrack（工数入力UI）と Storybook は未実装のため、現在 compos
 
 ## トラブルシュート
 
+- **`required variable ... is missing a value` で止まる** — `MYSQL_ROOT_PASSWORD` / `MYSQL_DATABASE` / `JWT_SECRET` は必須です。空のまま起動すると空パスワードの MySQL や空の署名鍵で立ち上がってしまうため、コンテナを作る前に compose が止めます。エラーは1件ずつ出るので、表示された変数を設定して再実行してください。なお **この検証は `make down` / `make ps` / `make logs` でも走ります** — 変数を export していないターミナルからは停止操作もできない点に注意してください（起動したターミナルから実行するか、同じ変数を export してください）。
 - **`make up` でポート競合エラー** — 既定の 3000 / 8080 / 3306 が他プロセスで使われています。競合プロセスを停止するか、`PMO_DASHBOARD_PORT` / `API_PORT` / `MYSQL_PORT` を空いているポートに変更してください（例: `PMO_DASHBOARD_PORT=3002 make up`）。
 - **ログイン直後の画面で一瞬エラーが出る** — API コンテナの起動直後はSSRの初回取得が間に合わないことがあります。リロードで解消します。
 - **マイグレーションが `dirty` で失敗する** — `make migrate-force version=<直前の成功番号>` で解除してから `make migrate-up`。
