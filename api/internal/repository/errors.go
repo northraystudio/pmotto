@@ -40,6 +40,18 @@ func wrapConflict(err error) error {
 	return err
 }
 
+// mysqlNoReferencedRow は参照先の親行が存在しないため INSERT/UPDATE を拒否した
+// エラーコード（ER_NO_REFERENCED_ROW_2）。1451 とは向きが逆で、こちらは
+// 「存在しない値を書こうとした」＝クライアントの入力誤りにあたる。
+const mysqlNoReferencedRow = 1452
+
+// isMissingReference は FK 先に存在しない値を書き込もうとしたことを判定する。
+// 呼び出し側は domain.ErrValidation へ写像し、500 ではなく 400 で返す。
+func isMissingReference(err error) bool {
+	var me *mysql.MySQLError
+	return errors.As(err, &me) && me.Number == mysqlNoReferencedRow
+}
+
 // isForeignKeyViolation は FK RESTRICT による削除・更新拒否（親行が参照されている）を判定する。
 // 呼び出し側は文脈に応じたメッセージを付けて domain.ErrConflict へ写像する。
 func isForeignKeyViolation(err error) bool {

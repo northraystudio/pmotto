@@ -20,29 +20,31 @@ func NewProjectUsecase(projects ProjectRepository, programs ProgramRepository) *
 }
 
 type CreateProjectInput struct {
-	Name             string
-	Description      string
-	PMID             *int
-	ApproverID       *int
-	Vendor           string
-	Budget           *int64
-	StartDate        *time.Time
-	EndDate          *time.Time
-	BacklogProjectID string
-	CreatedBy        int
+	Name        string
+	Description string
+	PMID        *int
+	ApproverID  *int
+	Vendor      string
+	Budget      *int64
+	StartDate   *time.Time
+	EndDate     *time.Time
+	SourceType  string
+	SourceValue string
+	CreatedBy   int
 }
 
 type UpdateProjectInput struct {
-	Name             string
-	Description      string
-	PMID             *int
-	ApproverID       *int
-	Vendor           string
-	Budget           *int64
-	StartDate        *time.Time
-	EndDate          *time.Time
-	Status           domain.ProjectStatus
-	BacklogProjectID string
+	Name        string
+	Description string
+	PMID        *int
+	ApproverID  *int
+	Vendor      string
+	Budget      *int64
+	StartDate   *time.Time
+	EndDate     *time.Time
+	Status      domain.ProjectStatus
+	SourceType  string
+	SourceValue string
 }
 
 // Get はスコープ内のプロジェクトのみ返す。担当外は存在秘匿のため ErrNotFound を返す
@@ -73,19 +75,21 @@ func (uc *ProjectUsecase) Create(ctx context.Context, programID int, in CreatePr
 	if strings.TrimSpace(in.Name) == "" {
 		return nil, fmt.Errorf("%w: プロジェクト名は必須です", domain.ErrValidation)
 	}
+	sourceType, sourceValue := normalizeSource(in.SourceType, in.SourceValue)
 	p := &domain.Project{
-		ProgramID:        programID,
-		Name:             strings.TrimSpace(in.Name),
-		Description:      in.Description,
-		PMID:             in.PMID,
-		ApproverID:       in.ApproverID,
-		Vendor:           in.Vendor,
-		Budget:           in.Budget,
-		StartDate:        in.StartDate,
-		EndDate:          in.EndDate,
-		Status:           domain.StatusPlanning,
-		BacklogProjectID: in.BacklogProjectID,
-		CreatedBy:        in.CreatedBy,
+		ProgramID:   programID,
+		Name:        strings.TrimSpace(in.Name),
+		Description: in.Description,
+		PMID:        in.PMID,
+		ApproverID:  in.ApproverID,
+		Vendor:      in.Vendor,
+		Budget:      in.Budget,
+		StartDate:   in.StartDate,
+		EndDate:     in.EndDate,
+		Status:      domain.StatusPlanning,
+		SourceType:  sourceType,
+		SourceValue: sourceValue,
+		CreatedBy:   in.CreatedBy,
 	}
 	if err := uc.projects.Create(ctx, p); err != nil {
 		return nil, fmt.Errorf("usecase.Project.Create: %w", err)
@@ -116,7 +120,7 @@ func (uc *ProjectUsecase) Update(ctx context.Context, id int, in UpdateProjectIn
 	p.StartDate = in.StartDate
 	p.EndDate = in.EndDate
 	p.Status = in.Status
-	p.BacklogProjectID = in.BacklogProjectID
+	p.SourceType, p.SourceValue = normalizeSource(in.SourceType, in.SourceValue)
 	if err := uc.projects.Update(ctx, p); err != nil {
 		return nil, fmt.Errorf("usecase.Project.Update: %w", err)
 	}
@@ -157,4 +161,28 @@ func (uc *ProjectUsecase) IssueCode(ctx context.Context, id int) (*domain.Projec
 		return nil, fmt.Errorf("usecase.Project.IssueCode persist: %w", err)
 	}
 	return uc.projects.FindByID(ctx, id)
+}
+
+// normalizeSource は進捗の取得元指定（種別と識別子）を組で正規化する。
+// 種別が未指定なら識別子も捨てる。両者を独立に空文字判定すると
+// source_type=NULL / source_value あり という行ができてしまい、収集対象の抽出が
+// source_type で絞る以上、どのワークフローからも到達できない値だけが residue として残る。
+// 逆に種別だけの指定は許す（先に取得元を決めて識別子を後から入れる運用があるため）。
+func normalizeSource(sourceType, sourceValue string) (*string, *string) {
+	t := emptyToNil(sourceType)
+	if t == nil {
+		return nil, nil
+	}
+	return t, emptyToNil(sourceValue)
+}
+
+// emptyToNil は空文字（前後空白のみを含む）を nil に正規化する。
+// source_type は data_source_types.code への FK を持つため、未選択を空文字のまま
+// 保存すると外部キー制約に違反する。
+func emptyToNil(s string) *string {
+	trimmed := strings.TrimSpace(s)
+	if trimmed == "" {
+		return nil
+	}
+	return &trimmed
 }

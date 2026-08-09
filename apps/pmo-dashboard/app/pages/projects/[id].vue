@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Category, CategoryValue, Project, ProjectAttribute, ProjectStatus } from '~/types/api'
+import type { Category, CategoryValue, DataSourceType, Project, ProjectAttribute, ProjectStatus } from '~/types/api'
 
 definePageMeta({ middleware: 'auth', requiredFunction: 'view_project_detail' })
 
@@ -13,12 +13,28 @@ const project = ref<Project | null>(null)
 const attributes = ref<ProjectAttribute[]>([])
 const categories = ref<Category[]>([])
 const valuesByCat = ref<Record<number, CategoryValue[]>>({})
+const dataSourceTypes = ref<DataSourceType[]>([])
 const error = ref('')
 const busyValueId = ref<number | null>(null)
 
 const editing = ref(false)
 const saving = ref(false)
-const form = reactive({ name: '', description: '', vendor: '', budget: '', startDate: '', endDate: '', backlogProjectId: '' })
+const form = reactive({ name: '', description: '', vendor: '', budget: '', startDate: '', endDate: '', sourceType: '', sourceValue: '' })
+
+// source_value の入力欄ラベルは種別ごとに意味が変わる（スプレッドシートID /
+// Backlog プロジェクトキー）。マスタの value_label をそのまま表示に使う。
+const sourceValueLabel = computed(
+  () => dataSourceTypes.value.find((t) => t.code === form.sourceType)?.value_label ?? '取得元の識別子',
+)
+
+// 取得元を未設定に戻したら識別子も消す。種別なしで値だけ残ると、
+// API 側で source_type=NULL / source_value あり という中途半端な状態になる。
+watch(
+  () => form.sourceType,
+  (next) => {
+    if (!next) form.sourceValue = ''
+  },
+)
 
 const inputClass =
   'w-full rounded-md bg-surface-1 px-3 py-2 text-sm text-ink placeholder:text-ink-muted outline-none ring-1 ring-hairline focus-visible:ring-2 focus-visible:ring-accent-blue/40'
@@ -37,6 +53,8 @@ async function loadAttributes() {
 async function loadMaster() {
   const res = await api<{ categories: Category[] }>('/categories')
   categories.value = res.categories ?? []
+  const ds = await api<{ data_source_types: DataSourceType[] }>('/data-source-types')
+  dataSourceTypes.value = ds.data_source_types ?? []
   const entries = await Promise.all(
     categories.value.map(async (c) => {
       const v = await api<{ values: CategoryValue[] }>(`/categories/${c.id}/values`)
@@ -120,7 +138,8 @@ function startEdit() {
     budget: p.budget != null ? String(p.budget) : '',
     startDate: p.start_date?.slice(0, 10) ?? '',
     endDate: p.end_date?.slice(0, 10) ?? '',
-    backlogProjectId: p.backlog_project_id,
+    sourceType: p.source_type ?? '',
+    sourceValue: p.source_value ?? '',
   })
   error.value = ''
   editing.value = true
@@ -146,7 +165,8 @@ async function onSave() {
         start_date: form.startDate,
         end_date: form.endDate,
         status: p.status,
-        backlog_project_id: form.backlogProjectId,
+        source_type: form.sourceType,
+        source_value: form.sourceValue,
       },
     })
     editing.value = false
@@ -176,7 +196,8 @@ async function changeStatus(next: ProjectStatus, confirmMessage: string) {
         start_date: p.start_date?.slice(0, 10) ?? '',
         end_date: p.end_date?.slice(0, 10) ?? '',
         status: next,
-        backlog_project_id: p.backlog_project_id,
+        source_type: p.source_type ?? '',
+        source_value: p.source_value ?? '',
       },
     })
     await loadProject()
@@ -329,9 +350,22 @@ function statusClass(s: ProjectStatus): string {
           <span class="text-sm text-ink-muted">終了日</span>
           <input v-model="form.endDate" type="date" :class="inputClass">
         </label>
-        <label class="flex flex-col gap-2 md:col-span-2">
-          <span class="text-sm text-ink-muted">Backlog プロジェクトID</span>
-          <input v-model="form.backlogProjectId" type="text" :class="inputClass">
+        <label class="flex flex-col gap-2">
+          <span class="text-sm text-ink-muted">進捗の取得元</span>
+          <select v-model="form.sourceType" :class="inputClass">
+            <option value="">未設定（収集しない）</option>
+            <option v-for="t in dataSourceTypes" :key="t.code" :value="t.code">{{ t.label }}</option>
+          </select>
+        </label>
+        <label class="flex flex-col gap-2">
+          <span class="text-sm text-ink-muted">{{ sourceValueLabel }}</span>
+          <input
+            v-model="form.sourceValue"
+            type="text"
+            :disabled="!form.sourceType"
+            :placeholder="form.sourceType ? '' : '先に取得元を選択してください'"
+            :class="inputClass"
+          >
         </label>
         <div class="flex gap-3 md:col-span-2">
           <PillButton variant="primary" type="submit">{{ saving ? '保存中…' : '保存する' }}</PillButton>

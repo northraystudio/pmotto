@@ -232,10 +232,14 @@ PMO管理者が発行するユニークな業務キー。コードはプログ�
 - 内部工数コスト = Σ（work_hours.hours × grade_rates.hourly_rate）※ユーザーのグレード・年度に対応する単価を使用
 - PM には合計コストのみ表示（単価の内訳は非表示）
 
-### 進捗管理（Backlog連携）
+### 進捗管理（マルチデータソース）
 
-- n8n の日次ワークフローで Backlog API からタスクデータを収集
-- `projects.backlog_project_id` を使って対象プロジェクトを特定
+- n8n の日次ワークフローで取得元からタスクデータを収集
+- `projects.source_type` / `projects.source_value` で対象プロジェクトと取得先を特定する。
+  `source_type` は `data_source_types.code`（`spreadsheet` / `backlog`）への FK で、
+  `source_value` は種別ごとの識別子（スプレッドシートID / Backlog プロジェクトキー）。
+  種別の追加はマスタへのデータ投入のみで行い、コード変更を伴わない
+- 同梱のサンプルワークフローが実装しているのは `spreadsheet` のみ
 - 取得したタスクを `project_progress` テーブルに蓄積
 - 収集後に進捗分析・リスク検知・トレンド算出を実行し `daily_reports` に保存
 
@@ -364,7 +368,8 @@ CREATE TABLE projects (
   start_date         DATE,
   end_date           DATE,
   status             ENUM('planning','active','completed','cancelled') NOT NULL DEFAULT 'planning',
-  backlog_project_id VARCHAR(255),                        -- Backlog Project ID
+  source_type        VARCHAR(50),                         -- data_source_types.code への FK。未設定なら収集対象外
+  source_value       VARCHAR(255),                        -- 種別ごとの識別子（スプレッドシートID等）
   ai_review_doc_path TEXT,                                -- AIレビュー結果ドキュメントのパス
   created_by         INT NOT NULL,
   created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -472,7 +477,19 @@ CREATE TABLE work_hours (
 ### 進捗管理
 
 ```sql
--- Backlogから収集したタスク進捗
+-- 進捗の取得元種別マスタ。種別追加をデータ投入だけで行えるようにテーブル化する
+CREATE TABLE data_source_types (
+  id          INT AUTO_INCREMENT PRIMARY KEY,
+  code        VARCHAR(50)  NOT NULL UNIQUE,            -- projects.source_type から参照
+  label       VARCHAR(100) NOT NULL,                   -- 画面表示名
+  value_label VARCHAR(100) NOT NULL,                   -- source_value 入力欄のラベル
+  sort_order  INT     NOT NULL DEFAULT 0,
+  is_active   BOOLEAN NOT NULL DEFAULT true,           -- 削除は論理削除のみ
+  created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- 取得元から収集したタスク進捗
 CREATE TABLE project_progress (
   id           INT AUTO_INCREMENT PRIMARY KEY,
   project_id   INT NOT NULL,
@@ -699,8 +716,8 @@ PMO管理者・経営層・PM向けの管理画面。
 
 ### 日次フロー（毎日 10:00）
 
-1. DBから `status='active'` かつ `backlog_project_id` が設定されたプロジェクト一覧を取得
-2. Backlog API から各プロジェクトのIssue一覧を取得
+1. DBから終了していない かつ `source_type` / `source_value` が設定されたプロジェクト一覧を取得
+2. 取得元（同梱サンプルは Google Sheets）から各プロジェクトのタスク一覧を取得
 3. 取得データを `project_progress` テーブルに保存（`register_day` = 実行日）
 4. 過去7日分のデータで進捗分析・リスク検知・トレンド算出を実行
 5. 結果を `daily_reports` テーブルに保存

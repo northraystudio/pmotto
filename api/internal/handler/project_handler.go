@@ -21,16 +21,17 @@ func NewProjectHandler(uc *usecase.ProjectUsecase) *ProjectHandler {
 
 // projectReq は作成・更新で共通の入力。日付は "YYYY-MM-DD" 文字列で受ける。
 type projectReq struct {
-	Name             string `json:"name" binding:"required"`
-	Description      string `json:"description"`
-	PMID             *int   `json:"pm_id"`
-	ApproverID       *int   `json:"approver_id"`
-	Vendor           string `json:"vendor"`
-	Budget           *int64 `json:"budget"`
-	StartDate        string `json:"start_date"`
-	EndDate          string `json:"end_date"`
-	Status           string `json:"status"`
-	BacklogProjectID string `json:"backlog_project_id"`
+	Name        string `json:"name" binding:"required"`
+	Description string `json:"description"`
+	PMID        *int   `json:"pm_id"`
+	ApproverID  *int   `json:"approver_id"`
+	Vendor      string `json:"vendor"`
+	Budget      *int64 `json:"budget"`
+	StartDate   string `json:"start_date"`
+	EndDate     string `json:"end_date"`
+	Status      string `json:"status"`
+	SourceType  string `json:"source_type"`
+	SourceValue string `json:"source_value"`
 }
 
 func (h *ProjectHandler) List(c *gin.Context) {
@@ -79,16 +80,17 @@ func (h *ProjectHandler) CreateUnderProgram(c *gin.Context) {
 		return
 	}
 	p, err := h.uc.Create(c.Request.Context(), programID, usecase.CreateProjectInput{
-		Name:             req.Name,
-		Description:      req.Description,
-		PMID:             req.PMID,
-		ApproverID:       req.ApproverID,
-		Vendor:           req.Vendor,
-		Budget:           req.Budget,
-		StartDate:        start,
-		EndDate:          end,
-		BacklogProjectID: req.BacklogProjectID,
-		CreatedBy:        middleware.UserID(c),
+		Name:        req.Name,
+		Description: req.Description,
+		PMID:        req.PMID,
+		ApproverID:  req.ApproverID,
+		Vendor:      req.Vendor,
+		Budget:      req.Budget,
+		StartDate:   start,
+		EndDate:     end,
+		SourceType:  req.SourceType,
+		SourceValue: req.SourceValue,
+		CreatedBy:   middleware.UserID(c),
 	})
 	if err != nil {
 		respondError(c, err)
@@ -112,16 +114,17 @@ func (h *ProjectHandler) Update(c *gin.Context) {
 		return
 	}
 	p, err := h.uc.Update(c.Request.Context(), id, usecase.UpdateProjectInput{
-		Name:             req.Name,
-		Description:      req.Description,
-		PMID:             req.PMID,
-		ApproverID:       req.ApproverID,
-		Vendor:           req.Vendor,
-		Budget:           req.Budget,
-		StartDate:        start,
-		EndDate:          end,
-		Status:           domain.ProjectStatus(req.Status),
-		BacklogProjectID: req.BacklogProjectID,
+		Name:        req.Name,
+		Description: req.Description,
+		PMID:        req.PMID,
+		ApproverID:  req.ApproverID,
+		Vendor:      req.Vendor,
+		Budget:      req.Budget,
+		StartDate:   start,
+		EndDate:     end,
+		Status:      domain.ProjectStatus(req.Status),
+		SourceType:  req.SourceType,
+		SourceValue: req.SourceValue,
 	})
 	if err != nil {
 		respondError(c, err)

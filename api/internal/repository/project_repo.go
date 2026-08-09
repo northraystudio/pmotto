@@ -17,7 +17,18 @@ type ProjectRepo struct {
 func NewProjectRepo(db *gorm.DB) *ProjectRepo { return &ProjectRepo{db: db} }
 
 func (r *ProjectRepo) Create(ctx context.Context, p *domain.Project) error {
-	return wrapConflict(r.db.WithContext(ctx).Create(p).Error)
+	return wrapInvalidSourceType(wrapConflict(r.db.WithContext(ctx).Create(p).Error))
+}
+
+// wrapInvalidSourceType は source_type に data_source_types へ存在しない値が
+// 指定された場合を入力エラーへ写像する。projects が持つ FK はこれだけなので、
+// 参照先欠如＝取得元種別の誤りと断定できる。放置すると 500 になり、
+// クライアントの入力誤りがサーバー障害として記録されてしまう。
+func wrapInvalidSourceType(err error) error {
+	if isMissingReference(err) {
+		return fmt.Errorf("%w: 取得元の種別が不正です", domain.ErrValidation)
+	}
+	return err
 }
 
 func (r *ProjectRepo) FindByID(ctx context.Context, id int) (*domain.Project, error) {
@@ -75,21 +86,23 @@ func (r *ProjectRepo) IDsByCreator(ctx context.Context, userID int) ([]int, erro
 
 // Update は可変フィールドを更新する（program_id / branch_no / project_code は不変）。
 func (r *ProjectRepo) Update(ctx context.Context, p *domain.Project) error {
-	return r.db.WithContext(ctx).Model(&domain.Project{}).
+	err := r.db.WithContext(ctx).Model(&domain.Project{}).
 		Where("id = ?", p.ID).
-		Select("name", "description", "pm_id", "approver_id", "vendor", "budget", "start_date", "end_date", "status", "backlog_project_id").
+		Select("name", "description", "pm_id", "approver_id", "vendor", "budget", "start_date", "end_date", "status", "source_type", "source_value").
 		Updates(map[string]any{
-			"name":               p.Name,
-			"description":        p.Description,
-			"pm_id":              p.PMID,
-			"approver_id":        p.ApproverID,
-			"vendor":             p.Vendor,
-			"budget":             p.Budget,
-			"start_date":         p.StartDate,
-			"end_date":           p.EndDate,
-			"status":             p.Status,
-			"backlog_project_id": p.BacklogProjectID,
+			"name":         p.Name,
+			"description":  p.Description,
+			"pm_id":        p.PMID,
+			"approver_id":  p.ApproverID,
+			"vendor":       p.Vendor,
+			"budget":       p.Budget,
+			"start_date":   p.StartDate,
+			"end_date":     p.EndDate,
+			"status":       p.Status,
+			"source_type":  p.SourceType,
+			"source_value": p.SourceValue,
 		}).Error
+	return wrapInvalidSourceType(err)
 }
 
 func (r *ProjectRepo) Delete(ctx context.Context, id int) error {
