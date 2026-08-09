@@ -101,3 +101,46 @@ func TestIsForeignKeyViolation(t *testing.T) {
 		})
 	}
 }
+
+// TestIsMissingReference は「参照先が存在しない値を書き込もうとした」ケースを
+// 1451（親行が参照されている）と取り違えないことを固定する。両者は向きが逆で、
+// 前者はクライアントの入力誤り（400）、後者は削除の競合（409）に写像される。
+func TestIsMissingReference(t *testing.T) {
+	tests := []struct {
+		name string
+		err  error
+		want bool
+	}{
+		{
+			name: "参照先欠如(1452)を検出する",
+			err:  &mysql.MySQLError{Number: 1452},
+			want: true,
+		},
+		{
+			name: "ラップされていても検出する",
+			err:  fmt.Errorf("update: %w", &mysql.MySQLError{Number: 1452}),
+			want: true,
+		},
+		{
+			name: "向きが逆のFK違反(1451)はfalse",
+			err:  &mysql.MySQLError{Number: 1451},
+			want: false,
+		},
+		{
+			name: "重複キーエラー(1062)はfalse",
+			err:  &mysql.MySQLError{Number: 1062},
+			want: false,
+		},
+		{
+			name: "nilはfalse",
+			err:  nil,
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, isMissingReference(tt.err))
+		})
+	}
+}
