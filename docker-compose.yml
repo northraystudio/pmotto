@@ -20,7 +20,8 @@ services:
       context: ./api
       target: dev
     ports:
-      - "8080:8080"
+      # ホスト側は API_PORT（既定 8080）で公開する。コンテナ内は常に 8080。
+      - "${API_PORT:-8080}:8080"
     volumes:
       - ./api:/app
       - go_cache:/root/go/pkg/mod
@@ -31,7 +32,8 @@ services:
       DB_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       DB_NAME: ${MYSQL_DATABASE}
       JWT_SECRET: ${JWT_SECRET}
-      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:3000}
+      # パスワード設定リンクの生成元。既定はフロントの公開ポートに追随させる。
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:${PMO_DASHBOARD_PORT:-3000}}
       # ローカルはHTTPのためSecure Cookieを無効化する。本番（HTTPS）では設定しない（既定true）
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
     depends_on:
@@ -43,14 +45,15 @@ services:
       context: ./apps/pmo-dashboard
       target: dev
     ports:
-      - "3000:3000"
+      # ホスト側は PMO_DASHBOARD_PORT（既定 3000）で公開する。コンテナ内は常に 3000。
+      - "${PMO_DASHBOARD_PORT:-3000}:3000"
     volumes:
       - ./apps/pmo-dashboard:/app
       - /app/node_modules
     environment:
-      # ブラウザ（クライアント）はホスト経由で API を叩く。
-      NUXT_PUBLIC_API_BASE: ${NUXT_PUBLIC_API_BASE:-http://localhost:8080}
-      # SSR（コンテナ内）は compose ネットワーク経由で API を叩く。
+      # ブラウザ（クライアント）はホスト経由で API を叩くため、API のホスト公開ポートに追随させる。
+      NUXT_PUBLIC_API_BASE: ${NUXT_PUBLIC_API_BASE:-http://localhost:${API_PORT:-8080}}
+      # SSR（コンテナ内）は compose ネットワーク経由。コンテナ内ポートは固定 8080 なので env 化しない。
       NUXT_API_BASE_SERVER: ${NUXT_API_BASE_SERVER:-http://api:8080}
       HOST: 0.0.0.0
     depends_on:

@@ -180,13 +180,17 @@ curl -b /tmp/c.txt http://localhost:8080/api/auth/me
 
 ## ポート一覧
 
-| サービス | URL / ポート | 備考 |
-|---|---|---|
-| pmo-dashboard | http://localhost:3000 | PMO管理画面 |
-| api | http://localhost:8080 | Go API（プレフィックス `/api`） |
-| mysql | `localhost:3307` | ホスト公開ポート。コンテナ内は `mysql:3306` |
+ホスト側の公開ポートはすべて環境変数で変更できます（コンテナ内のポートは固定）。
 
-> ホストの MySQL ポートを `3307` にしているのは、既存の MySQL が `3306` を使っている場合の競合を避けるためです（`.env` の `MYSQL_PORT` で変更可）。
+| サービス | 既定 URL / ポート | 変更する環境変数 | コンテナ内 |
+|---|---|---|---|
+| pmo-dashboard | http://localhost:3000 | `PMO_DASHBOARD_PORT` | `3000` |
+| api | http://localhost:8080 | `API_PORT` | `api:8080` |
+| mysql | `localhost:3307` | `MYSQL_PORT` | `mysql:3306` |
+
+> ホストの MySQL ポートを `3307` にしているのは、既存の MySQL が `3306` を使っている場合の競合を避けるためです。
+>
+> `API_PORT` / `PMO_DASHBOARD_PORT` を変えると、`NUXT_PUBLIC_API_BASE`（ブラウザ→API）と `APP_BASE_URL`（パスワード設定リンク）の既定値も自動で追随します。これらを明示的に設定している場合のみ、手動で合わせてください。SSR 用の `NUXT_API_BASE_SERVER` は compose ネットワーク内の通信でコンテナ内ポート固定のため、変更不要です。
 
 worktrack（工数入力UI）と Storybook は未実装のため、現在 compose では無効化しています。
 
@@ -194,7 +198,7 @@ worktrack（工数入力UI）と Storybook は未実装のため、現在 compos
 
 ## トラブルシュート
 
-- **`make up` でポート競合エラー** — 3000 / 8080 / 3307 が他プロセスで使われています。`.env` の `MYSQL_PORT` を変更するか、競合プロセスを停止してください。
+- **`make up` でポート競合エラー** — 既定の 3000 / 8080 / 3307 が他プロセスで使われています。競合プロセスを停止するか、`PMO_DASHBOARD_PORT` / `API_PORT` / `MYSQL_PORT` を空いているポートに変更してください（例: `PMO_DASHBOARD_PORT=3002 make up`）。
 - **ログイン直後の画面で一瞬エラーが出る** — API コンテナの起動直後はSSRの初回取得が間に合わないことがあります。リロードで解消します。
 - **マイグレーションが `dirty` で失敗する** — `make migrate-force version=<直前の成功番号>` で解除してから `make migrate-up`。
 - **データを完全に作り直したい** — `make reset`（全データ削除 → 再マイグレーション。その後 `make seed-link`）。

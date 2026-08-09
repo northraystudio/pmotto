@@ -95,14 +95,17 @@ make storybook # Storybook起動（pmo-dashboard:6006 / worktrack:6007）
 
 ### ポート一覧
 
-| サービス | ポート |
-|---|---|
-| api | 8080 |
-| pmo-dashboard | 3000 |
-| worktrack | 3001 |
-| mysql | 3306 |
-| storybook-pmo | 6006 |
-| storybook-worktrack | 6007 |
+ホスト公開ポートは環境変数で変更できる（コンテナ内ポートは固定）。compose に直書きしない。
+
+| サービス | ホスト既定 | 変更用環境変数 | コンテナ内 |
+|---|---|---|---|
+| api | 8080 | `API_PORT` | 8080 |
+| pmo-dashboard | 3000 | `PMO_DASHBOARD_PORT` | 3000 |
+| mysql | 3307 | `MYSQL_PORT` | 3306 |
+
+`API_PORT` / `PMO_DASHBOARD_PORT` を変えると `NUXT_PUBLIC_API_BASE` と `APP_BASE_URL` の既定値も追随する（compose のネスト展開）。
+
+worktrack（3001）と Storybook（6006 / 6007）は未実装のため compose では無効化中。
 
 ## System Architecture
 
