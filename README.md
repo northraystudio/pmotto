@@ -185,8 +185,10 @@ curl -b /tmp/c.txt http://localhost:8080/api/auth/me
 | サービス | 既定 URL / ポート | 変更する環境変数 | コンテナ内 |
 |---|---|---|---|
 | pmo-dashboard | http://localhost:3000 | `PMO_DASHBOARD_PORT` | `3000` |
-| api | http://localhost:8080 | `API_PORT` | `api:8080` |
+| api | http://localhost:8080 | `API_PORT` | `api:${API_PORT}` |
 | mysql | `localhost:3306` | `MYSQL_PORT` | `mysql:3306` |
+
+`API_PORT` はホスト公開ポートと API がコンテナ内で listen するポートの両方を指します（`config.go` も同じ変数を読みます）。ホスト側とコンテナ側で番号が食い違わないよう、1つの変数で揃えています。
 
 > ホストで別の MySQL が `3306` を使っている場合は、`MYSQL_PORT=3307` のように変更してください。
 

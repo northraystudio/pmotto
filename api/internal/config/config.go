@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -91,20 +92,22 @@ func Load() (Config, error) {
 	}
 
 	return Config{
-		DBHost:              getEnv("DB_HOST", "localhost"),
-		DBPort:              getEnv("DB_PORT", "3306"),
-		DBUser:              getEnv("DB_USER", "root"),
-		DBPassword:          getEnv("DB_PASSWORD", "root"),
-		DBName:              getEnv("DB_NAME", "pmo"),
-		DBMaxOpenConns:      maxOpen,
-		DBMaxIdleConns:      maxIdle,
-		DBConnMaxLifetime:   connMaxLifetime,
-		JWTSecret:           secret,
-		AccessTokenTTL:      getEnvDuration("ACCESS_TOKEN_TTL", 8*time.Hour),
-		RefreshTokenTTL:     getEnvDuration("REFRESH_TOKEN_TTL", 7*24*time.Hour),
-		SetTokenTTL:         getEnvDuration("SET_TOKEN_TTL", 72*time.Hour),
-		AppBaseURL:          getEnv("APP_BASE_URL", "http://localhost:3000"),
-		Port:                getEnv("PORT", "8080"),
+		DBHost:            getEnv("DB_HOST", "localhost"),
+		DBPort:            getEnv("DB_PORT", "3306"),
+		DBUser:            getEnv("DB_USER", "root"),
+		DBPassword:        getEnv("DB_PASSWORD", "root"),
+		DBName:            getEnv("DB_NAME", "pmo"),
+		DBMaxOpenConns:    maxOpen,
+		DBMaxIdleConns:    maxIdle,
+		DBConnMaxLifetime: connMaxLifetime,
+		JWTSecret:         secret,
+		AccessTokenTTL:    getEnvDuration("ACCESS_TOKEN_TTL", 8*time.Hour),
+		RefreshTokenTTL:   getEnvDuration("REFRESH_TOKEN_TTL", 7*24*time.Hour),
+		SetTokenTTL:       getEnvDuration("SET_TOKEN_TTL", 72*time.Hour),
+		AppBaseURL:        getEnv("APP_BASE_URL", "http://localhost:3000"),
+		// docker-compose の API_PORT と同じ変数を読む。ホスト公開ポートと
+		// コンテナ内の listen ポートを1つの変数で揃えるため、別名にしない。
+		Port:                getEnv("API_PORT", "8080"),
 		CookieSecure:        getEnvBool("COOKIE_SECURE", true),
 		AuthRateLimitPerMin: rateLimitPerMin,
 		AuthRateLimitBurst:  rateLimitBurst,
@@ -112,11 +115,42 @@ func Load() (Config, error) {
 }
 
 // DSN は GORM/MySQL 用のデータソース名を返す。
+// パスワードを含むためログに出してはいけない（ログ用途には Summary を使う）。
 func (c Config) DSN() string {
 	return fmt.Sprintf(
 		"%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Local",
 		c.DBUser, c.DBPassword, c.DBHost, c.DBPort, c.DBName,
 	)
+}
+
+// Summary は起動時ログ用に、解決後の設定値を環境変数名で一覧化して返す。
+// 「どの環境変数がどう解決されたか」が分かれば、意図しない DB を参照している等の
+// 設定ミスを起動ログだけで切り分けられる。
+// JWT_SECRET と DB_PASSWORD は値を出さず、設定の有無と長さだけを示す。
+func (c Config) Summary() string {
+	lines := []string{
+		fmt.Sprintf("API_PORT=%s", c.Port),
+		fmt.Sprintf("DB_HOST=%s DB_PORT=%s DB_NAME=%s DB_USER=%s DB_PASSWORD=%s",
+			c.DBHost, c.DBPort, c.DBName, c.DBUser, maskSecret(c.DBPassword)),
+		fmt.Sprintf("DB_MAX_OPEN_CONNS=%d DB_MAX_IDLE_CONNS=%d DB_CONN_MAX_LIFETIME=%s",
+			c.DBMaxOpenConns, c.DBMaxIdleConns, c.DBConnMaxLifetime),
+		fmt.Sprintf("JWT_SECRET=%s", maskSecret(c.JWTSecret)),
+		fmt.Sprintf("ACCESS_TOKEN_TTL=%s REFRESH_TOKEN_TTL=%s SET_TOKEN_TTL=%s",
+			c.AccessTokenTTL, c.RefreshTokenTTL, c.SetTokenTTL),
+		fmt.Sprintf("APP_BASE_URL=%s COOKIE_SECURE=%t", c.AppBaseURL, c.CookieSecure),
+		fmt.Sprintf("AUTH_RATE_LIMIT_PER_MIN=%d AUTH_RATE_LIMIT_BURST=%d",
+			c.AuthRateLimitPerMin, c.AuthRateLimitBurst),
+	}
+	return "  " + strings.Join(lines, "\n  ")
+}
+
+// maskSecret は秘匿値のマスク表現を返す。値そのものは決して返さず、
+// 設定されているかと長さだけを示す（「設定したつもりで空だった」を検出するため）。
+func maskSecret(v string) string {
+	if v == "" {
+		return "(未設定)"
+	}
+	return fmt.Sprintf("(設定済み・%d文字)", len(v))
 }
 
 func getEnv(key, fallback string) string {

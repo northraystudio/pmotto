@@ -6,6 +6,8 @@ RUN apk add --no-cache gcc musl-dev
 RUN go install github.com/air-verse/air@v1.67.1
 COPY go.mod go.sum ./
 RUN go mod download
+# EXPOSE はドキュメント用の記述で実際の公開は compose の ports が決める。
+# listen ポートは環境変数 API_PORT（既定 8080）で変わる。
 EXPOSE 8080
 CMD ["air"]
 

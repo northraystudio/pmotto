@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -196,6 +197,53 @@ func TestLoad_AuthRateLimit(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, tt.wantPerMin, cfg.AuthRateLimitPerMin)
 			assert.Equal(t, tt.wantBurst, cfg.AuthRateLimitBurst)
+		})
+	}
+}
+
+func TestConfig_Summary_秘匿値を出力しない(t *testing.T) {
+	const (
+		secret   = "super-secret-jwt-signing-key"
+		password = "super-secret-db-password"
+	)
+
+	t.Setenv("JWT_SECRET", secret)
+	t.Setenv("DB_PASSWORD", password)
+	t.Setenv("DB_NAME", "pmo_proto")
+	t.Setenv("API_PORT", "8082")
+
+	cfg, err := Load()
+	require.NoError(t, err)
+
+	summary := cfg.Summary()
+
+	// 秘匿値そのものは決してログに出さない。
+	assert.NotContains(t, summary, secret, "JWT_SECRET の値が出力されている")
+	assert.NotContains(t, summary, password, "DB_PASSWORD の値が出力されている")
+
+	// 「設定したつもりで空だった」を検出できるよう、有無と長さは出す。
+	assert.Contains(t, summary, fmt.Sprintf("JWT_SECRET=(設定済み・%d文字)", len(secret)))
+	assert.Contains(t, summary, fmt.Sprintf("DB_PASSWORD=(設定済み・%d文字)", len(password)))
+
+	// 接続先の切り分けに要る非秘匿の値は出す。
+	assert.Contains(t, summary, "DB_NAME=pmo_proto")
+	assert.Contains(t, summary, "API_PORT=8082")
+}
+
+func TestMaskSecret(t *testing.T) {
+	tests := []struct {
+		name  string
+		value string
+		want  string
+	}{
+		{name: "未設定は空であることが分かる表記にする", value: "", want: "(未設定)"},
+		{name: "設定済みは長さのみ示す", value: "abc", want: "(設定済み・3文字)"},
+		{name: "値そのものは含めない", value: "hunter2", want: "(設定済み・7文字)"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, maskSecret(tt.value))
 		})
 	}
 }

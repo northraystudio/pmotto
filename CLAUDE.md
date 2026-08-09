@@ -99,7 +99,7 @@ make storybook # Storybook起動（pmo-dashboard:6006 / worktrack:6007）
 
 | サービス | ホスト既定 | 変更用環境変数 | コンテナ内 |
 |---|---|---|---|
-| api | 8080 | `API_PORT` | 8080 |
+| api | 8080 | `API_PORT` | `API_PORT` と同じ |
 | pmo-dashboard | 3000 | `PMO_DASHBOARD_PORT` | 3000 |
 | mysql | 3306 | `MYSQL_PORT` | 3306 |
 

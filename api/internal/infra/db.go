@@ -1,6 +1,7 @@
 package infra
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"time"
@@ -46,7 +47,49 @@ func NewDB(cfg config.Config) (*gorm.DB, error) {
 		return nil, fmt.Errorf("infra: DB への ping に失敗: %w", err)
 	}
 
+	logConnectionTarget(db)
+
 	return db, nil
+}
+
+// logConnectionTarget は実際に接続できた MySQL の情報を起動ログに出す。
+// 設定値ではなくサーバー自身の応答を出すのが要点で、ホストのポートを別スタックの
+// MySQL が握っている場合など「設定は正しいのに別の DB に繋がっている」ケースを
+// 起動ログだけで切り分けられる。取得に失敗しても起動は継続する（診断用のため）。
+func logConnectionTarget(db *gorm.DB) {
+	var (
+		dbName    sql.NullString // 接続時にDBが選択されていなければ NULL になる
+		dbUser    string
+		serverID  string
+		port      string
+		version   string
+		tableRows int64
+	)
+
+	row := db.Raw("SELECT DATABASE(), USER(), @@hostname, @@port, VERSION()").Row()
+	if err := row.Scan(&dbName, &dbUser, &serverID, &port, &version); err != nil {
+		log.Printf("infra: 接続先DB情報の取得に失敗（起動は継続）: %v", err)
+		return
+	}
+
+	// テーブル数はマイグレーション未適用の空DBを踏んでいないかの判断材料になる。
+	if err := db.Raw(
+		"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE()",
+	).Row().Scan(&tableRows); err != nil {
+		log.Printf("infra: テーブル数の取得に失敗（起動は継続）: %v", err)
+	}
+
+	log.Printf(
+		"infra: DB接続先 database=%s user=%s server=%s:%s version=%s tables=%d",
+		nullOr(dbName, "(未選択)"), dbUser, serverID, port, version, tableRows,
+	)
+}
+
+func nullOr(v sql.NullString, fallback string) string {
+	if !v.Valid || v.String == "" {
+		return fallback
+	}
+	return v.String
 }
 
 // pingWithRetry は ping が成功するまで maxRetries 回まで線形バックオフで再試行する。
