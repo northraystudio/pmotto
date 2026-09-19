@@ -10,7 +10,7 @@ const year = new Date().getFullYear()
       <div class="flex flex-col gap-3">
         <BrandMark />
         <p class="text-xs text-ink-muted">
-          プロジェクト統制基盤 — PMO Agent
+          プロジェクト統制基盤 — pmotto
         </p>
       </div>
 
@@ -23,7 +23,7 @@ const year = new Date().getFullYear()
 
     <div class="border-t border-hairline-soft">
       <p class="mx-auto max-w-6xl px-6 py-5 text-xs text-ink-muted">
-        © {{ year }} PMO Agent
+        © {{ year }} pmotto
       </p>
     </div>
   </footer>

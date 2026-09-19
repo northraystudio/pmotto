@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// PMO Agent ワードマーク。モノクロ。アクセントは選択状態のみなのでマークも白。
+// pmotto ワードマーク。モノクロ。アクセントは選択状態のみなのでマークも白。
 </script>
 
 <template>
@@ -10,6 +10,6 @@
     >
       P
     </span>
-    <span class="text-sm font-semibold tracking-tight text-ink">PMO Agent</span>
+    <span class="text-sm font-semibold tracking-tight text-ink">pmotto</span>
   </span>
 </template>

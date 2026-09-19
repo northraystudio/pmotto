@@ -2,7 +2,7 @@
 import type { Role, User } from '~/types/api'
 
 definePageMeta({ middleware: 'auth', requiredFunction: 'manage_users' })
-useHead({ title: 'メンバー管理 — PMO Agent' })
+useHead({ title: 'メンバー管理 — pmotto' })
 
 const api = useApi()
 

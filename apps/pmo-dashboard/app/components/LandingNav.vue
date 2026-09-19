@@ -15,7 +15,7 @@ const links = [
       class="mx-auto flex h-14 max-w-6xl items-center justify-between px-6"
       aria-label="グローバル"
     >
-      <NuxtLink to="/" aria-label="PMO Agent ホーム">
+      <NuxtLink to="/" aria-label="pmotto ホーム">
         <BrandMark />
       </NuxtLink>
 

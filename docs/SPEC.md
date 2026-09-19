@@ -1,4 +1,4 @@
-# PMO Agent — システム設計仕様書
+# pmotto — システム設計仕様書
 
 ## 概要
 
@@ -20,7 +20,7 @@
                                    ←→  [ 工数管理UI (Nuxt 4) ]
                     ↑
               [ Claude / Cowork ]
-              （フェーズ2: PMO Agent MCP）
+              （フェーズ2: pmotto MCP）
 ```
 
 ---
@@ -42,7 +42,7 @@
 ### リポジトリ構成（モノレポ）
 
 ```
-pmo-agent/
+pmotto/
 ├── api/                          # Go API サーバー
 │   ├── cmd/server/main.go
 │   ├── internal/
@@ -55,7 +55,7 @@ pmo-agent/
 │   ├── go.mod
 │   └── Dockerfile
 ├── apps/
-│   ├── pmo-dashboard/            # PMO Agent UI（経営層・PMO管理者・PM向け）
+│   ├── pmo-dashboard/            # pmotto UI（経営層・PMO管理者・PM向け）
 │   └── worktrack/                # 工数管理 UI（全メンバー向け）
 ├── docker/
 │   └── mysql/init/01_schema.sql
@@ -746,7 +746,7 @@ PMO管理者・経営層・PM向けの管理画面。
 
 ### フェーズ2
 
-- PMO Agent MCP Server（MySQL データへの Claude アクセス基盤）
+- pmotto MCP Server（MySQL データへの Claude アクセス基盤）
 - Cowork 上での自然言語プロジェクト分析・経営レポート生成
 - AIレビューSkill（プロジェクト計画書の一次レビュー自動化）
 

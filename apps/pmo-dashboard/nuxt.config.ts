@@ -16,7 +16,7 @@ export default defineNuxtConfig({
   app: {
     head: {
       htmlAttrs: { lang: 'ja' },
-      title: 'PMO Agent — プロジェクト統制基盤',
+      title: 'pmotto — プロジェクト統制基盤',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },

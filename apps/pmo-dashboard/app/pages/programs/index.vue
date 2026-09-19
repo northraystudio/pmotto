@@ -2,7 +2,7 @@
 import type { ProgramView } from '~/types/api'
 
 definePageMeta({ middleware: 'auth', requiredFunction: 'view_project_detail' })
-useHead({ title: 'プログラム — PMO Agent' })
+useHead({ title: 'プログラム — pmotto' })
 
 const api = useApi()
 const auth = useAuth()

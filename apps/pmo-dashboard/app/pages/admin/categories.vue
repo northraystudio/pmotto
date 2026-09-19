@@ -2,7 +2,7 @@
 import type { Category, CategoryValue } from '~/types/api'
 
 definePageMeta({ middleware: 'auth', requiredFunction: 'manage_categories' })
-useHead({ title: '属性マスタ — PMO Agent' })
+useHead({ title: '属性マスタ — pmotto' })
 
 const api = useApi()
 

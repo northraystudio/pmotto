@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: 'パスワード設定 — PMO Agent' })
+useHead({ title: 'パスワード設定 — pmotto' })
 
 const route = useRoute()
 const api = useApi()
@@ -53,7 +53,7 @@ async function onSubmit() {
     <div class="hero-aura pointer-events-none absolute inset-0" aria-hidden="true" />
 
     <header class="relative mx-auto flex h-14 w-full max-w-6xl items-center px-6">
-      <NuxtLink to="/" aria-label="PMO Agent ホーム">
+      <NuxtLink to="/" aria-label="pmotto ホーム">
         <BrandMark />
       </NuxtLink>
     </header>

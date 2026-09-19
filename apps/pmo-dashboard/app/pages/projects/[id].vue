@@ -75,7 +75,7 @@ onMounted(async () => {
 watchEffect(() => {
   if (project.value) {
     const code = project.value.project_code ?? project.value.name
-    useHead({ title: `${code} — PMO Agent` })
+    useHead({ title: `${code} — pmotto` })
   }
 })
 
