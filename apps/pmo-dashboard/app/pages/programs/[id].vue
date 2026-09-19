@@ -43,7 +43,7 @@ async function loadAttributes() {
 }
 onMounted(load)
 watchEffect(() => {
-  if (detail.value) useHead({ title: `${detail.value.program.code} — PMO Agent` })
+  if (detail.value) useHead({ title: `${detail.value.program.code} — pmotto` })
 })
 
 async function onCreateProject() {

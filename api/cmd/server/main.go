@@ -36,7 +36,7 @@ func main() {
 		log.Fatalf("トークンクリーンアップの実行に失敗: %v", err)
 	}
 	if err := c.Invoke(func(e *gin.Engine, cfg config.Config) error {
-		log.Printf("PMO Agent API を :%s で起動します", cfg.Port)
+		log.Printf("pmotto API を :%s で起動します", cfg.Port)
 		return e.Run(":" + cfg.Port)
 	}); err != nil {
 		log.Fatalf("サーバー起動に失敗: %v", err)

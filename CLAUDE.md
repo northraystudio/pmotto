@@ -17,14 +17,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-PMO Agent — プロジェクト統制基盤。プロジェクトコード発行から工数・コスト管理・経営レポートまでを一気通貫で管理するモノレポ。
+pmotto — プロジェクト統制基盤。プロジェクトコード発行から工数・コスト管理・経営レポートまでを一気通貫で管理するモノレポ。
 
 詳細仕様: [`docs/SPEC.md`](docs/SPEC.md)
 
 ## Monorepo Structure
 
 ```
-pmo-agent-prototype/
+pmotto/
 ├── api/                   # Go API サーバー → api/CLAUDE.md
 ├── apps/
 │   ├── pmo-dashboard/     # PMO管理画面（経営層・PMO管理者・PM向け） → apps/pmo-dashboard/CLAUDE.md
@@ -151,7 +151,7 @@ worktrack（3001）と Storybook（6006 / 6007）は未実装のため compose �
 
 ### YAGNI（You Aren't Gonna Need It）
 
-- OTP / Microsoft Entra ID SSO / PMO Agent MCP は将来フェーズ。今は拡張点（`users` の拡張カラム等）だけ確保し、実装はしない
+- OTP / Microsoft Entra ID SSO / pmotto MCP は将来フェーズ。今は拡張点（`users` の拡張カラム等）だけ確保し、実装はしない
 - プログラムの `budget` / 期間は列を持たず集計で算出する（将来必要になるまで持たせない）
 - 「いつか使うかも」のための汎用化・設定項目を足さない
 

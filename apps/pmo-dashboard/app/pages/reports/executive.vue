@@ -2,7 +2,7 @@
 import type { ExecutiveReport } from '~/types/api'
 
 definePageMeta({ middleware: 'auth', requiredFunction: 'view_executive_report' })
-useHead({ title: 'エグゼクティブレポート — PMO Agent' })
+useHead({ title: 'エグゼクティブレポート — pmotto' })
 
 const api = useApi()
 const reports = ref<ExecutiveReport[]>([])

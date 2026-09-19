@@ -1,6 +1,6 @@
 <script setup lang="ts">
 definePageMeta({ middleware: 'auth' })
-useHead({ title: 'ホーム — PMO Agent' })
+useHead({ title: 'ホーム — pmotto' })
 
 const auth = useAuth()
 

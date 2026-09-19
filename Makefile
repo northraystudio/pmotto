@@ -1,5 +1,5 @@
 # =============================================================
-# PMO Agent — 開発タスクランナー
+# pmotto — 開発タスクランナー
 # すべての操作はこの Makefile 経由で行う（docker / go / npm を直接叩かない）。
 # 前提: Docker Desktop のみ。Go / Node のホストインストールは不要。
 # =============================================================
@@ -21,7 +21,7 @@ DB_URL_DOCKER = mysql://root:$(MYSQL_ROOT_PASSWORD)@tcp(mysql:3306)/$(MYSQL_DATA
 
 # ---- ヘルプ ----
 help: ## このヘルプを表示する
-	@echo "PMO Agent — make targets"
+	@echo "pmotto — make targets"
 	@echo ""
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(firstword $(MAKEFILE_LIST)) \
 		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
