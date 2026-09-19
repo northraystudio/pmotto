@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"pmo-agent/api/internal/domain"
+	"pmotto/api/internal/domain"
 )
 
 // ProjectUsecase はプロジェクトの管理とコード発行を担う。

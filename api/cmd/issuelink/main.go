@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"log"
 
-	"pmo-agent/api/internal/config"
-	"pmo-agent/api/internal/infra"
-	"pmo-agent/api/internal/repository"
-	"pmo-agent/api/internal/usecase"
+	"pmotto/api/internal/config"
+	"pmotto/api/internal/infra"
+	"pmotto/api/internal/repository"
+	"pmotto/api/internal/usecase"
 )
 
 func main() {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"pmo-agent/api/internal/domain"
+	"pmotto/api/internal/domain"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/stretchr/testify/assert"

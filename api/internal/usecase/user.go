@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"pmo-agent/api/internal/domain"
+	"pmotto/api/internal/domain"
 )
 
 // UserUsecase はメンバー管理（ユーザーCRUD＋招待/リセットリンク発行）を担う。

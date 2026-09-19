@@ -3,7 +3,7 @@ package handler
 import (
 	"net/http"
 
-	"pmo-agent/api/internal/usecase"
+	"pmotto/api/internal/usecase"
 
 	"github.com/gin-gonic/gin"
 )

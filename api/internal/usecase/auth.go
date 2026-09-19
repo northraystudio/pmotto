@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"time"
 
-	"pmo-agent/api/internal/domain"
+	"pmotto/api/internal/domain"
 )
 
 // AuthUsecase は認証フロー（ログイン・リフレッシュ・パスワード設定/変更）を担う。

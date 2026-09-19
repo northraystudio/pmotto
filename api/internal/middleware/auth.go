@@ -6,7 +6,7 @@ import (
 	"slices"
 	"strings"
 
-	"pmo-agent/api/internal/domain"
+	"pmotto/api/internal/domain"
 
 	"github.com/gin-gonic/gin"
 )

@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"pmo-agent/api/internal/domain"
+	"pmotto/api/internal/domain"
 
 	"gorm.io/gorm"
 )

@@ -1,12 +1,12 @@
 package di
 
 import (
-	"pmo-agent/api/internal/config"
-	"pmo-agent/api/internal/handler"
-	"pmo-agent/api/internal/infra"
-	"pmo-agent/api/internal/middleware"
-	"pmo-agent/api/internal/repository"
-	"pmo-agent/api/internal/usecase"
+	"pmotto/api/internal/config"
+	"pmotto/api/internal/handler"
+	"pmotto/api/internal/infra"
+	"pmotto/api/internal/middleware"
+	"pmotto/api/internal/repository"
+	"pmotto/api/internal/usecase"
 
 	"go.uber.org/dig"
 )

@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"time"
 
-	"pmo-agent/api/internal/domain"
-	"pmo-agent/api/internal/middleware"
-	"pmo-agent/api/internal/usecase"
+	"pmotto/api/internal/domain"
+	"pmotto/api/internal/middleware"
+	"pmotto/api/internal/usecase"
 
 	"github.com/gin-gonic/gin"
 )

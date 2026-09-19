@@ -4,9 +4,9 @@ import (
 	"context"
 	"log"
 
-	"pmo-agent/api/internal/config"
-	"pmo-agent/api/internal/di"
-	"pmo-agent/api/internal/usecase"
+	"pmotto/api/internal/config"
+	"pmotto/api/internal/di"
+	"pmotto/api/internal/usecase"
 
 	"github.com/gin-gonic/gin"
 )

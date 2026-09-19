@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"pmo-agent/api/internal/domain"
+	"pmotto/api/internal/domain"
 )
 
 // 種別プレフィックスは英大文字2〜5文字（例: INV / MNT / OPS）。
