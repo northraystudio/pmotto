@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"pmo-agent/api/internal/domain"
+	"pmotto/api/internal/domain"
 
 	"gorm.io/gorm"
 )

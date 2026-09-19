@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"pmo-agent/api/internal/config"
+	"pmotto/api/internal/config"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"

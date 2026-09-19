@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"pmo-agent/api/internal/domain"
+	"pmotto/api/internal/domain"
 )
 
 // --- テスト用フェイク ---

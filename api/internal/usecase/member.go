@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"pmo-agent/api/internal/domain"
+	"pmotto/api/internal/domain"
 )
 
 // MemberUsecase はプロジェクトへのメンバーアサイン CRUD を担う。

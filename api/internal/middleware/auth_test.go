@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"pmo-agent/api/internal/domain"
+	"pmotto/api/internal/domain"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"

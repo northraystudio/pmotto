@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"pmo-agent/api/internal/domain"
+	"pmotto/api/internal/domain"
 )
 
 // CategoryUsecase はプロジェクト属性マスタ（カテゴリ／値）の管理を担う。

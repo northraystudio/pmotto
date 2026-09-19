@@ -1,4 +1,4 @@
-module pmo-agent/api
+module pmotto/api
 
 go 1.25.13
 

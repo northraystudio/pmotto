@@ -3,7 +3,7 @@ package handler
 import (
 	"net/http"
 
-	"pmo-agent/api/internal/middleware"
+	"pmotto/api/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 )

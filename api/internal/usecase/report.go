@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"pmo-agent/api/internal/domain"
+	"pmotto/api/internal/domain"
 )
 
 // executiveReportLimit は一覧で返す件数の上限。週次生成なので数ヶ月分に相当する。

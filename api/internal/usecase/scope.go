@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sort"
 
-	"pmo-agent/api/internal/domain"
+	"pmotto/api/internal/domain"
 )
 
 // ScopeUsecase はリクエストユーザーのロールから、閲覧・操作を許可する

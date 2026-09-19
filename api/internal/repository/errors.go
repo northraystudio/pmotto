@@ -3,7 +3,7 @@ package repository
 import (
 	"errors"
 
-	"pmo-agent/api/internal/domain"
+	"pmotto/api/internal/domain"
 
 	"github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"

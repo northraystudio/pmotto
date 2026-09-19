@@ -3,7 +3,7 @@ package di
 import (
 	"testing"
 
-	"pmo-agent/api/internal/config"
+	"pmotto/api/internal/config"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/dig"
